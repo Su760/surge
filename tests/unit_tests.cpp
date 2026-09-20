@@ -1,3 +1,4 @@
+#include "surge/bounded_queue.hpp"
 #include "surge/config.hpp"
 #include "surge/http.hpp"
 #include "surge/unique_fd.hpp"
@@ -91,9 +92,35 @@ void test_unique_fd_reset_with_same_descriptor_keeps_ownership() {
   CHECK(::close(pipe_fds[1]) == 0);
 }
 
+void test_handoff_queue_saturation_and_shutdown_cleanup() {
+  int first_pipe[2]{};
+  int second_pipe[2]{};
+  CHECK(::pipe(first_pipe) == 0);
+  CHECK(::pipe(second_pipe) == 0);
+  surge::BoundedQueue<surge::UniqueFd> queue(1);
+  surge::UniqueFd first(first_pipe[0]);
+  surge::UniqueFd second(second_pipe[0]);
+  CHECK(queue.try_push(std::move(first)));
+  CHECK(!first);
+  CHECK(!queue.try_push(std::move(second)));
+  CHECK(second.get() == second_pipe[0]);
+  queue.close();
+  CHECK(!queue.try_push(std::move(second)));
+  CHECK(second.get() == second_pipe[0]);
+  auto batch = queue.take_all();
+  CHECK(batch.size() == 1);
+  CHECK(batch.front().get() == first_pipe[0]);
+  batch.clear();
+  CHECK(::fcntl(first_pipe[0], F_GETFD) == -1);
+  second.reset();
+  CHECK(::close(first_pipe[1]) == 0);
+  CHECK(::close(second_pipe[1]) == 0);
+}
+
 void test_config_parses_limits_and_rejects_invalid_values() {
   std::vector<std::string> values{
       "surge", "--listen-port", "18080", "--upstream", "127.0.0.1:19000",
+      "--workers", "4", "--handoff-queue-capacity", "9",
       "--max-connections", "7", "--max-upstream-connections", "3",
       "--max-request-bytes", "2048", "--max-response-bytes", "4096",
       "--client-header-timeout-ms", "250", "--upstream-timeout-ms", "500",
@@ -104,6 +131,8 @@ void test_config_parses_limits_and_rejects_invalid_values() {
   CHECK(result.error.empty());
   CHECK(result.config.listen_port == 18080);
   CHECK(result.config.upstream_port == 19000);
+  CHECK(result.config.workers == 4);
+  CHECK(result.config.handoff_queue_capacity == 9);
   CHECK(result.config.max_connections == 7);
   CHECK(result.config.max_upstream_connections == 3);
   CHECK(result.config.max_request_bytes == 2048);
@@ -176,6 +205,7 @@ int main() {
   test_unique_fd_closes_and_moves();
   test_unique_fd_does_not_retry_close_after_eintr();
   test_unique_fd_reset_with_same_descriptor_keeps_ownership();
+  test_handoff_queue_saturation_and_shutdown_cleanup();
   test_config_parses_limits_and_rejects_invalid_values();
   test_fragmented_request_and_hop_by_hop_filtering();
   test_request_rejects_unsupported_or_ambiguous_framing();

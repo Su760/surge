@@ -6,7 +6,7 @@ Status: implemented. Linux debug, AddressSanitizer, and UndefinedBehaviorSanitiz
 
 ## Milestone 2 — worker reactors
 
-Add multiple reactors with explicit thread ownership, bounded inter-thread queues, coordinated shutdown, and ThreadSanitizer checks. Acceptance requires stable ownership rules and tests that saturate every queue without unbounded growth or lost shutdown notifications.
+Status: implemented. One acceptor hands move-only sockets to configurable worker reactors through bounded mutex-protected queues and eventfd notifications. Client and upstream limits remain process-wide, queued sockets are accounted, shutdown drops queued work and drains active work to a monotonic deadline, and aggregate counters are race-safe. One-worker and four-worker integration suites plus a separate ThreadSanitizer build cover the ownership and coordination paths. This milestone makes no performance claim.
 
 ## Milestone 3 — admission policies
 

@@ -17,3 +17,14 @@ Approved by the user's instruction to make a brief plan and execute milestone 1 
 - [x] Stage and inspect the complete initial diff, commit, push `main`, and verify local/remote SHA plus GitHub Actions.
 
 Approved by the user's explicit instruction to finalize and publish milestone 1 to `origin/main`.
+
+# Milestone 2 worker-reactor plan
+
+- [x] Add configurable workers, bounded handoff queues, and process-wide client/upstream leases.
+- [x] Give each worker exclusive ownership of its epoll loop, connections, sockets, parsers, buffers, and deadlines.
+- [x] Coordinate accept shutdown, queued-socket cleanup, bounded active draining, worker wakeups, and joins.
+- [x] Run protocol tests with one and multiple workers plus focused queue, global-limit, churn, and shutdown regressions.
+- [x] Add and run separate Linux debug, ASan, UBSan, and TSan checks; update milestone documentation.
+- [x] Review the staged diff, commit, push `main` without force, and verify CI for the exact commit.
+
+Approved by the user's instruction to implement, verify, commit, and publish milestone 2.

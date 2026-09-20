@@ -3,18 +3,19 @@ project(surge VERSION 0.1.0 LANGUAGES C CXX)
 
 include(CTest)
 include(FetchContent)
+find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(SURGE_SANITIZER "" CACHE STRING "Enable address or undefined sanitizer")
-set_property(CACHE SURGE_SANITIZER PROPERTY STRINGS "" address undefined)
+set(SURGE_SANITIZER "" CACHE STRING "Enable address, undefined, or thread sanitizer")
+set_property(CACHE SURGE_SANITIZER PROPERTY STRINGS "" address undefined thread)
 
 if(SURGE_SANITIZER)
-  if(NOT SURGE_SANITIZER MATCHES "^(address|undefined)$")
-    message(FATAL_ERROR "SURGE_SANITIZER must be address or undefined")
+  if(NOT SURGE_SANITIZER MATCHES "^(address|undefined|thread)$")
+    message(FATAL_ERROR "SURGE_SANITIZER must be address, undefined, or thread")
   endif()
   add_compile_options(-fno-omit-frame-pointer -fsanitize=${SURGE_SANITIZER})
   add_link_options(-fno-omit-frame-pointer -fsanitize=${SURGE_SANITIZER})
@@ -37,7 +38,7 @@ add_library(surge_core
   src/unique_fd.cpp
 )
 target_include_directories(surge_core PUBLIC include)
-target_link_libraries(surge_core PUBLIC llhttp::llhttp)
+target_link_libraries(surge_core PUBLIC llhttp::llhttp Threads::Threads)
 target_compile_options(surge_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
 
 add_executable(surge src/main.cpp)
@@ -52,11 +53,14 @@ if(BUILD_TESTING)
   add_test(NAME unit COMMAND surge_unit_tests)
 
   find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
-  add_test(
-    NAME integration
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.py
-            --gateway $<TARGET_FILE:surge>
-            --backend ${CMAKE_CURRENT_SOURCE_DIR}/tools/backend.py
-  )
-  set_tests_properties(integration PROPERTIES TIMEOUT 90)
+  foreach(worker_count IN ITEMS 1 4)
+    add_test(
+      NAME integration-workers-${worker_count}
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.py
+              --gateway $<TARGET_FILE:surge>
+              --backend ${CMAKE_CURRENT_SOURCE_DIR}/tools/backend.py
+              --workers ${worker_count}
+    )
+    set_tests_properties(integration-workers-${worker_count} PROPERTIES TIMEOUT 150)
+  endforeach()
 endif()

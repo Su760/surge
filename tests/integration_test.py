@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import signal
 import socket
 import subprocess
@@ -11,7 +12,6 @@ import threading
 import time
 import unittest
 from contextlib import closing
-import re
 
 
 def free_port() -> int:
@@ -85,14 +85,22 @@ class Process:
 class Harness:
     gateway_binary = ""
     backend_script = ""
+    default_workers = 1
 
-    def __init__(self, *, gateway_options: list[str] | None = None, backend: bool = True):
+    def __init__(
+        self,
+        *,
+        gateway_options: list[str] | None = None,
+        backend: bool = True,
+        workers: int | None = None,
+    ):
         self.gateway_port = free_port()
         self.backend_port = free_port()
         self.backend_process: Process | None = None
         self.gateway_process: Process | None = None
         self.gateway_options = gateway_options or []
         self.with_backend = backend
+        self.workers = workers if workers is not None else self.default_workers
 
     def __enter__(self) -> "Harness":
         if self.with_backend:
@@ -106,11 +114,13 @@ class Harness:
             "--listen-address", "127.0.0.1",
             "--listen-port", str(self.gateway_port),
             "--upstream", f"127.0.0.1:{self.backend_port}",
+            "--workers", str(self.workers),
             "--stats-interval-ms", "0",
             *self.gateway_options,
         ]
         self.gateway_process = Process(command).start()
         wait_for_port(self.gateway_port, self.gateway_process.process)
+        time.sleep(0.05)
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:
@@ -221,6 +231,21 @@ class GatewayIntegrationTests(unittest.TestCase):
                 self.assertEqual(status, 200)
                 self.assertEqual(body, b"fast\n")
 
+    def test_multiple_workers_process_connections(self):
+        harness = Harness(workers=4)
+        harness.__enter__()
+        try:
+            for _ in range(12):
+                self.assertEqual(harness.request("/fast")[2], b"fast\n")
+            _, err = harness.stop_gateway()
+            match = re.search(r"worker_connections=([^\n]+)", err)
+            self.assertIsNotNone(match, err)
+            counts = [int(item.split(":", 1)[1]) for item in match.group(1).split(",")]
+            self.assertEqual(len(counts), 4, err)
+            self.assertGreaterEqual(sum(value > 0 for value in counts), 2, err)
+        finally:
+            harness.__exit__(None, None, None)
+
     def test_malformed_and_unsupported_requests(self):
         wires = [
             b"garbage\r\n\r\n",
@@ -322,14 +347,45 @@ class GatewayIntegrationTests(unittest.TestCase):
             slow_client.close()
             client.__exit__(None, None, None)
 
+    def test_shutdown_cleans_many_queued_or_active_connections(self):
+        harness = Harness(
+            workers=4,
+            gateway_options=[
+                "--handoff-queue-capacity", "1",
+                "--max-connections", "128",
+                "--drain-timeout-ms", "150",
+            ],
+        )
+        harness.__enter__()
+        clients = []
+        try:
+            for _ in range(64):
+                try:
+                    sock = harness.connect()
+                    sock.sendall(b"GET /slow HTTP/1.1\r\nHost: test\r\nX-Hold: ")
+                    clients.append(sock)
+                except OSError:
+                    pass
+            started = time.monotonic()
+            out, err = harness.stop_gateway(timeout=2)
+            self.assertLess(time.monotonic() - started, 1.0)
+            self.assertIn("active=0", err, (out, err))
+            self.assertIn("queued=0", err, (out, err))
+        finally:
+            for sock in clients:
+                sock.close()
+            harness.__exit__(None, None, None)
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--gateway", required=True)
     parser.add_argument("--backend", required=True)
+    parser.add_argument("--workers", type=int, default=1)
     args, remaining = parser.parse_known_args()
     Harness.gateway_binary = os.path.abspath(args.gateway)
     Harness.backend_script = os.path.abspath(args.backend)
+    Harness.default_workers = args.workers
     unittest.main(argv=[sys.argv[0], *remaining], verbosity=2)
 
 

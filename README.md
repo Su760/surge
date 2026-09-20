@@ -2,7 +2,7 @@
 
 Surge is a C++20 Linux HTTP gateway for studying overload control under bursty, mixed-cost workloads. The experimental question is whether deadline-aware, request-class-aware admission can improve on-time completions over fixed and latency-adaptive global concurrency limits. That is a hypothesis; this repository does not claim novelty or results.
 
-Milestone 1 is a correct, deliberately small baseline: one level-triggered epoll reactor, one configured upstream, bounded connections and buffers, prompt overload rejection, monotonic timeouts, and clean signal-driven draining.
+Milestone 2 adds configurable worker reactors while preserving the strict milestone 1 protocol. One acceptor transfers sockets through bounded queues to worker-owned level-triggered epoll loops. Global connection and upstream limits, monotonic timeouts, prompt overload rejection, and bounded draining apply across all workers. No performance improvement is claimed without measurement.
 
 ## Quick start
 
@@ -19,18 +19,21 @@ On macOS, build and test the real Linux/epoll implementation in Docker:
 ```sh
 docker build --target build --load -t surge-dev .
 docker run --rm surge-dev ctest --test-dir build --output-on-failure
+docker build --target build --load -t surge-tsan --build-arg SANITIZER=thread .
+docker run --rm -e TSAN_OPTIONS=halt_on_error=1 \
+  surge-tsan ctest --test-dir build --output-on-failure
 ```
 
 Run a self-contained demo, then request both routes from another terminal:
 
 ```sh
 docker run --rm -p 8080:8080 surge-dev sh -c \
-  'python3 tools/backend.py --port 9000 --slow-ms 250 & exec build/surge --upstream 127.0.0.1:9000'
+  'python3 tools/backend.py --port 9000 --slow-ms 250 & exec build/surge --workers 4 --upstream 127.0.0.1:9000'
 curl -v http://127.0.0.1:8080/fast
 curl -v http://127.0.0.1:8080/slow
 ```
 
-Run `build/surge --help` for all limits and timeouts. Defaults include 1,024 client connections, 128 upstream connections, 16 KiB request headers, 1 MiB complete upstream responses, a 5-second request-header timeout, a 10-second upstream/client-write inactivity timeout, and a 5-second drain bound. Set `--stats-interval-ms 0` to disable periodic output; final counters are always written to stderr and include client write backpressure events.
+Run `build/surge --help` for all limits and timeouts. The default is one worker with a 64-socket handoff queue; `--workers N` selects multiple workers and `--handoff-queue-capacity N` bounds each worker queue. The defaults also include 1,024 process-wide client connections, 128 process-wide upstream connections, 16 KiB request headers, 1 MiB complete upstream responses, a 5-second request-header timeout, a 10-second upstream/client-write inactivity timeout, and a 5-second drain bound. Set `--stats-interval-ms 0` to disable periodic output; aggregate final counters are always written to stderr.
 
 ## Supported protocol
 

@@ -17,6 +17,8 @@ jobs:
             sanitizer: address
           - name: undefined
             sanitizer: undefined
+          - name: thread
+            sanitizer: thread
     name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
@@ -31,4 +33,5 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+          TSAN_OPTIONS: halt_on_error=1
         run: ctest --test-dir build --output-on-failure

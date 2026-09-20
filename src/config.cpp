@@ -66,6 +66,10 @@ ConfigResult parse_config(int argc, char** argv) {
       valid = parse_unsigned(value, result.config.listen_port);
     } else if (option == "--upstream") {
       valid = parse_upstream(value, result.config);
+    } else if (option == "--workers") {
+      valid = parse_unsigned(value, result.config.workers);
+    } else if (option == "--handoff-queue-capacity") {
+      valid = parse_unsigned(value, result.config.handoff_queue_capacity);
     } else if (option == "--max-connections") {
       valid = parse_unsigned(value, result.config.max_connections);
     } else if (option == "--max-upstream-connections") {
@@ -99,6 +103,8 @@ std::string usage() {
   --listen-address ADDRESS             default 0.0.0.0
   --listen-port PORT                   default 8080
   --upstream HOST:PORT                 default 127.0.0.1:9000
+  --workers N                          default 1
+  --handoff-queue-capacity N           per-worker capacity, default 64
   --max-connections N                  default 1024
   --max-upstream-connections N         default 128
   --max-request-bytes N                default 16384

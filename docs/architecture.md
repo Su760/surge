@@ -1,10 +1,20 @@
-# Milestone 1 architecture
+# Milestone 2 architecture
 
-One thread owns the listener, epoll instance, signalfd, timerfd, every accepted client socket, every upstream socket, and all connection state. `UniqueFd` is move-only and closes its descriptor once on destruction. Each epoll registration gets a monotonic token that maps to a connection id and role. Removing a connection erases its tokens, unregisters and closes both legs, then releases buffers; an event already returned by `epoll_wait` therefore cannot alias a later socket that reuses the same fd number.
+One coordinator thread owns the listener, signal fd, coordinator timer, and acceptor epoll instance. Each configured worker thread owns a separate epoll instance, eventfd, timerfd, and every active connection assigned to it. Connection maps, client and upstream sockets, parsers, buffers, offsets, deadlines, and epoll registration tokens are never accessed by another thread.
 
-Each connection moves through one linear state:
+## Handoff and ownership
 
-| State               | Interested events       | Owned data                           |
+The acceptor reserves a process-wide connection lease immediately after `accept4`. That lease counts the socket against `max_connections` while it is queued and moves with the `UniqueFd` through a mutex-protected bounded queue. `eventfd` wakes the selected worker after the queue lock is released. The worker drains the queue into local storage, registers each client in its epoll instance, and performs all network I/O without holding the queue lock.
+
+Queues have a configurable per-worker capacity. The acceptor tries each queue once in round-robin order and returns 503 if all are full; it never waits for a worker. Closing or draining a queue does not copy descriptors. Destroying a queued item, an active `Connection`, or a failed handoff releases its move-only fd and its global connection lease together.
+
+Each upstream attempt similarly acquires a lease from one process-wide `max_upstream_connections` counter. Worker count therefore does not multiply either configured concurrency limit. Atomic aggregate counters contain no pointers into worker-owned state.
+
+## Connection lifecycle
+
+Each worker retains the milestone 1 state machine:
+
+| State               | Interested events       | Worker-owned data                    |
 | ------------------- | ----------------------- | ------------------------------------ |
 | reading request     | client readable         | bounded llhttp request parser        |
 | connecting upstream | upstream writable/error | serialized bounded request           |
@@ -12,16 +22,10 @@ Each connection moves through one linear state:
 | reading upstream    | upstream readable       | bounded llhttp response parser       |
 | writing client      | client writable         | sanitized response plus write offset |
 
-Level-triggered handlers repeat `accept`, `recv`, or `send` until completion or `EAGAIN`; they retry `EINTR`. Nonblocking `connect` completes only after writable notification and a successful `SO_ERROR` check. A client that closes only its write half can still receive the response. Peer close, `EPOLLERR`, malformed input, and truncated responses take explicit cleanup/error paths.
+Level-triggered handlers repeat nonblocking I/O until completion or `EAGAIN`. Asynchronous connect completion uses `SO_ERROR`. A client write-half-close removes read interest while preserving the response path. Each worker assigns monotonic tokens to registrations, so an event already returned by `epoll_wait` cannot alias a socket that later reuses the same fd number.
 
-## Request lifecycle
+## Shutdown and counters
 
-The listener accepts a nonblocking client and creates its sole `Connection` owner. Incremental llhttp callbacks parse headers until a complete, valid GET is available. If the upstream concurrency cap is full, the reactor returns 503 without queuing. Otherwise it opens one nonblocking upstream socket, removes hop-by-hop request headers, writes `Connection: close`, and forwards the request.
+SIGINT or SIGTERM closes the listener, closes every handoff queue to new pushes, wakes all workers, and drops sockets still queued. Already active connections may finish until the shared monotonic drain deadline. Deadline expiry or a second signal wakes workers again and closes all remaining connections. The coordinator polls worker completion, joins every thread, and prints final counters only after ownership has returned to destructors.
 
-The response parser requires one `Content-Length` and rejects ambiguous or unsupported framing. It buffers at most `max_response_bytes`, rebuilds a sanitized response, closes the upstream leg, and drains the client output across as many writable notifications as needed. A complete write increments `completed`; destruction unregisters fds and releases every string/parser allocation.
-
-## Bounds, deadlines, and shutdown
-
-`max_connections` bounds admitted client state and `max_upstream_connections` bounds in-flight upstream work. There is no waiting queue. Request and response parsers enforce configured byte limits; serialized buffers have the same bounded source data. A small overload response is written directly to a newly accepted socket and immediately closed.
-
-All deadlines use `std::chrono::steady_clock`; timerfd wakes the reactor every 50 ms. Header parsing has an absolute deadline. Upstream connect/write/read and client response writes use an inactivity deadline refreshed by progress. SIGINT or SIGTERM closes the listener and lets active connections drain until the configured deadline. A second signal or drain expiry closes the remainder. Final stderr counters report accepted, active, completed, rejected, upstream errors, timeouts, and client write backpressure events.
+`accepted` counts successful kernel accepts. `active` includes queued and worker-active client sockets. `queued` is a synchronized snapshot. `upstream_active` is process-wide. `completed` counts complete client response writes. `rejected` includes overload and protocol rejections; `queue_rejected` is the subset caused by full handoff queues. Upstream errors, timeouts, and client backpressure events retain their milestone 1 meanings. `worker_connections` reports cumulative sockets adopted by each worker and is an observability check, not a performance result.

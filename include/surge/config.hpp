@@ -11,6 +11,8 @@ struct Config {
   std::uint16_t listen_port{8080};
   std::string upstream_host{"127.0.0.1"};
   std::uint16_t upstream_port{9000};
+  std::size_t workers{1};
+  std::size_t handoff_queue_capacity{64};
   std::size_t max_connections{1024};
   std::size_t max_upstream_connections{128};
   std::size_t max_request_bytes{16 * 1024};
