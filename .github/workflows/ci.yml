@@ -1,0 +1,34 @@
+name: linux-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: debug
+            sanitizer: ""
+          - name: address
+            sanitizer: address
+          - name: undefined
+            sanitizer: undefined
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DSURGE_SANITIZER=${{ matrix.sanitizer }}
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: ctest --test-dir build --output-on-failure

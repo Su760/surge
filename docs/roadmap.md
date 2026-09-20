@@ -1,0 +1,21 @@
+# Roadmap
+
+## Milestone 1 — single-reactor baseline
+
+Status: implemented. Linux debug, AddressSanitizer, and UndefinedBehaviorSanitizer builds pass unit and socket-level integration tests for forwarding, fragmentation, measured client-write backpressure, concurrent fast/slow work, failures, timeouts, half-close and disconnect behavior, descriptor reuse, limits, and bounded shutdown. The implemented protocol remains the strict subset in the README.
+
+## Milestone 2 — worker reactors
+
+Add multiple reactors with explicit thread ownership, bounded inter-thread queues, coordinated shutdown, and ThreadSanitizer checks. Acceptance requires stable ownership rules and tests that saturate every queue without unbounded growth or lost shutdown notifications.
+
+## Milestone 3 — admission policies
+
+Implement comparable fixed, latency-adaptive, and deadline/request-class-aware policies behind one small interface. Acceptance requires identical workload inputs, explicit rejection decisions, policy state observability, and tests for each decision boundary.
+
+## Milestone 4 — reproducible open-loop experiments
+
+Schedule offered arrivals independently of completions; record intended and actual send times; use fixed, published seeds and repeated trials. Report on-time completions relative to all offered requests, rejection and timeout rates, per-class results, latency distributions, CPU, memory, and recovery after bursts. Detect coordinated omission and generator saturation so rejecting most traffic cannot appear to win.
+
+## Milestone 5 — profiling and measured optimization
+
+Capture reproducible CPU and allocation profiles on named workloads before changing hot paths. Accept optimizations only with repeated before/after measurements, preserved correctness tests, and reported uncertainty and resource costs.
