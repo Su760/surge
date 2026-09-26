@@ -1,0 +1,942 @@
+{
+  "config": "one",
+  "rate_per_s": 60,
+  "repetition": 1,
+  "seed": 20260926,
+  "backend_command": [
+    "python3",
+    "tools/backend.py",
+    "--port",
+    "19090",
+    "--max-concurrency",
+    "64",
+    "--fast-ms",
+    "2"
+  ],
+  "gateway_command": [
+    "build/surge",
+    "--listen-address",
+    "127.0.0.1",
+    "--listen-port",
+    "18080",
+    "--upstream",
+    "127.0.0.1:19090",
+    "--workers",
+    "1",
+    "--handoff-queue-capacity",
+    "64",
+    "--max-connections",
+    "256",
+    "--max-upstream-connections",
+    "64",
+    "--stats-interval-ms",
+    "0"
+  ],
+  "warmup": {
+    "scheduled": 30,
+    "counts": {
+      "success": 30,
+      "http_rejection": 0,
+      "http_error": 0,
+      "timeout": 0,
+      "connection_failure": 0,
+      "protocol_error": 0,
+      "generator_drop": 0
+    }
+  },
+  "summary": {
+    "scheduled": 120,
+    "dispatched": 120,
+    "counts": {
+      "success": 120,
+      "http_rejection": 0,
+      "http_error": 0,
+      "timeout": 0,
+      "connection_failure": 0,
+      "protocol_error": 0,
+      "generator_drop": 0
+    },
+    "offered_duration_s": 2.0,
+    "elapsed_through_drain_s": 2.001449249999993,
+    "success_per_s": 59.95655398207094,
+    "success_rate": 1.0,
+    "rejection_rate": 0.0,
+    "error_rate": 0.0,
+    "generator_drop_rate": 0.0,
+    "dispatch_lag": {
+      "p50_ms": 2.2672864223447675,
+      "p95_ms": 4.238826560998791,
+      "p99_ms": 5.240787969124893
+    },
+    "response_latency": {
+      "p50_ms": 4.986250500003564,
+      "p95_ms": 6.436108050012024,
+      "p99_ms": 8.243942229995778
+    },
+    "scheduled_arrival_latency": {
+      "p50_ms": 7.483162258565358,
+      "p95_ms": 9.962444468145224,
+      "p99_ms": 11.116759568563475
+    },
+    "generator_limited": false
+  },
+  "resources": {
+    "backend": {
+      "cpu_seconds": 0.16,
+      "cpu_percent_one_core": 7.99420719760946,
+      "peak_rss_bytes": 19075072
+    },
+    "generator": {
+      "cpu_seconds": 0.16999999999999998,
+      "cpu_percent_one_core": 8.49384514746005,
+      "peak_rss_bytes": 22409216
+    },
+    "gateway": {
+      "cpu_seconds": 0.05,
+      "cpu_percent_one_core": 2.498189749252956,
+      "peak_rss_bytes": 3563520
+    }
+  },
+  "records": [
+    {
+      "scheduled_ms": 4.774237489102913,
+      "dispatched_ms": 7.759915999997702,
+      "complete_ms": 10.8772909999999,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 20.96511774921715,
+      "dispatched_ms": 22.37854099999481,
+      "complete_ms": 27.782625000000394,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 39.40862975085821,
+      "dispatched_ms": 40.36595799999532,
+      "complete_ms": 43.942749999999364,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 58.380058646416906,
+      "dispatched_ms": 61.00733299999206,
+      "complete_ms": 64.5662499999986,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 72.3735513554993,
+      "dispatched_ms": 75.27000000000328,
+      "complete_ms": 79.0437910000037,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 87.80110119005198,
+      "dispatched_ms": 91.80045799999448,
+      "complete_ms": 94.89095799999347,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 107.26125199939476,
+      "dispatched_ms": 108.67883299999903,
+      "complete_ms": 111.8624580000045,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 127.23679401269803,
+      "dispatched_ms": 129.8661249999924,
+      "complete_ms": 134.11341599999105,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 144.61447293719277,
+      "dispatched_ms": 146.0987079999967,
+      "complete_ms": 150.09004099999856,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 155.23843577062033,
+      "dispatched_ms": 155.47862500000065,
+      "complete_ms": 158.55416600000183,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 177.0724981035339,
+      "dispatched_ms": 178.87716599999237,
+      "complete_ms": 183.110415999991,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 193.3542695549987,
+      "dispatched_ms": 196.3324999999969,
+      "complete_ms": 199.9214579999915,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 210.1653215357298,
+      "dispatched_ms": 211.62695799999653,
+      "complete_ms": 214.90054099999156,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 226.79565471556054,
+      "dispatched_ms": 230.1203749999985,
+      "complete_ms": 234.08595799999432,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 242.59764253135128,
+      "dispatched_ms": 247.0553329999916,
+      "complete_ms": 252.2943329999947,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 255.8423933001897,
+      "dispatched_ms": 258.5004999999967,
+      "complete_ms": 263.1962499999929,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 275.84623680548776,
+      "dispatched_ms": 278.77733299999363,
+      "complete_ms": 283.4704579999965,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 291.25945684168227,
+      "dispatched_ms": 293.88262499999485,
+      "complete_ms": 298.8216250000022,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 305.5267270153597,
+      "dispatched_ms": 307.1497079999972,
+      "complete_ms": 312.38679099999445,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 328.11193061330454,
+      "dispatched_ms": 332.05741599999783,
+      "complete_ms": 337.0291250000008,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 338.5395607305191,
+      "dispatched_ms": 340.56666600000085,
+      "complete_ms": 345.161707999992,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 356.8587654173981,
+      "dispatched_ms": 359.1404999999952,
+      "complete_ms": 364.04404099999965,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 372.9248909427966,
+      "dispatched_ms": 375.1888749999921,
+      "complete_ms": 379.0623750000037,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 390.30104062293344,
+      "dispatched_ms": 395.5506659999912,
+      "complete_ms": 399.7289579999972,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 407.69506475181817,
+      "dispatched_ms": 409.07558300000346,
+      "complete_ms": 414.4969160000045,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 428.19863976025727,
+      "dispatched_ms": 430.14887500000043,
+      "complete_ms": 435.2626249999929,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 444.99281762423243,
+      "dispatched_ms": 447.81874999999616,
+      "complete_ms": 453.3450830000021,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 462.0715555146467,
+      "dispatched_ms": 462.76108300000374,
+      "complete_ms": 467.12808299999153,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 472.9224538375069,
+      "dispatched_ms": 474.99841599999115,
+      "complete_ms": 479.31254099999876,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 493.6381317069299,
+      "dispatched_ms": 495.644666000004,
+      "complete_ms": 500.1810830000011,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 510.7702330431191,
+      "dispatched_ms": 513.7347910000045,
+      "complete_ms": 519.6683329999985,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 522.3218161958081,
+      "dispatched_ms": 523.7588749999986,
+      "complete_ms": 528.9554579999987,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 540.6405810688792,
+      "dispatched_ms": 542.6018750000026,
+      "complete_ms": 548.3225830000009,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 558.1967252456536,
+      "dispatched_ms": 561.6050409999929,
+      "complete_ms": 566.7405829999979,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 577.25640987405,
+      "dispatched_ms": 578.7310829999939,
+      "complete_ms": 583.731874999998,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 588.9573204897885,
+      "dispatched_ms": 591.0465409999972,
+      "complete_ms": 596.9779579999965,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 609.8656740727146,
+      "dispatched_ms": 614.9275410000001,
+      "complete_ms": 621.0404999999923,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 625.4154982759105,
+      "dispatched_ms": 627.6118749999995,
+      "complete_ms": 631.8901659999909,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 640.831319128168,
+      "dispatched_ms": 642.8678329999968,
+      "complete_ms": 648.5245410000005,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 655.4735070203376,
+      "dispatched_ms": 658.1733750000041,
+      "complete_ms": 662.9899579999972,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 676.868390094802,
+      "dispatched_ms": 679.7381669999965,
+      "complete_ms": 684.1146670000029,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 694.0520824982902,
+      "dispatched_ms": 697.2075829999937,
+      "complete_ms": 701.9264580000026,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 704.8448373176525,
+      "dispatched_ms": 705.5702920000044,
+      "complete_ms": 709.6665419999937,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 723.8908613567161,
+      "dispatched_ms": 725.0715830000019,
+      "complete_ms": 729.544875000002,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 737.8377622962645,
+      "dispatched_ms": 743.0408749999913,
+      "complete_ms": 748.1285420000034,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 761.0567029508751,
+      "dispatched_ms": 765.2841670000043,
+      "complete_ms": 769.8396669999994,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 778.9957483647187,
+      "dispatched_ms": 780.8717919999992,
+      "complete_ms": 785.1955000000004,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 791.353345464503,
+      "dispatched_ms": 792.740957999996,
+      "complete_ms": 798.9340829999918,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 811.5430581217181,
+      "dispatched_ms": 815.3896669999909,
+      "complete_ms": 819.973707999992,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 823.0927298420484,
+      "dispatched_ms": 825.0671670000003,
+      "complete_ms": 829.8788329999951,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 844.4604680128155,
+      "dispatched_ms": 846.0655829999979,
+      "complete_ms": 851.7382919999932,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 857.7416669364552,
+      "dispatched_ms": 859.7702499999968,
+      "complete_ms": 865.4629579999948,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 878.053813107203,
+      "dispatched_ms": 880.0531669999998,
+      "complete_ms": 884.2886669999928,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 887.8252550144467,
+      "dispatched_ms": 889.7371249999964,
+      "complete_ms": 894.2914169999909,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 905.0757522463274,
+      "dispatched_ms": 919.8480419999981,
+      "complete_ms": 925.2907079999915,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 928.5855261826348,
+      "dispatched_ms": 929.2059170000044,
+      "complete_ms": 932.5970419999976,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 943.7495105653286,
+      "dispatched_ms": 945.3644169999933,
+      "complete_ms": 948.9763750000009,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 955.1472319630103,
+      "dispatched_ms": 957.1001249999966,
+      "complete_ms": 960.8911669999998,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 975.6587653768288,
+      "dispatched_ms": 977.0112500000039,
+      "complete_ms": 981.8669579999977,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 992.4271062579512,
+      "dispatched_ms": 993.6747499999967,
+      "complete_ms": 1000.4084579999954,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1006.0126192125006,
+      "dispatched_ms": 1008.2832079999946,
+      "complete_ms": 1014.5197079999946,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1029.1284644490825,
+      "dispatched_ms": 1032.0010420000044,
+      "complete_ms": 1037.370041999992,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1042.8825853714436,
+      "dispatched_ms": 1044.8132500000042,
+      "complete_ms": 1050.7850829999938,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1057.9605768689555,
+      "dispatched_ms": 1060.1409579999909,
+      "complete_ms": 1066.0544170000037,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1074.1348447324415,
+      "dispatched_ms": 1077.9015829999992,
+      "complete_ms": 1083.537082999996,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1093.793859883021,
+      "dispatched_ms": 1096.3306670000038,
+      "complete_ms": 1101.3517920000027,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1105.333115958554,
+      "dispatched_ms": 1107.2844170000026,
+      "complete_ms": 1111.8909580000036,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1121.1021866247047,
+      "dispatched_ms": 1122.9935829999959,
+      "complete_ms": 1129.4396669999996,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1138.737922498912,
+      "dispatched_ms": 1140.727666999993,
+      "complete_ms": 1144.8918330000026,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1159.5073428928622,
+      "dispatched_ms": 1163.0764579999918,
+      "complete_ms": 1168.322416999999,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1174.25392955955,
+      "dispatched_ms": 1177.3190830000003,
+      "complete_ms": 1182.4285000000004,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1195.668702161313,
+      "dispatched_ms": 1197.8015419999933,
+      "complete_ms": 1204.492375000001,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1210.602487825822,
+      "dispatched_ms": 1212.9025830000019,
+      "complete_ms": 1218.4139169999924,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1223.432050990929,
+      "dispatched_ms": 1225.8894579999974,
+      "complete_ms": 1231.1164169999956,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1245.5080778979122,
+      "dispatched_ms": 1246.6429170000026,
+      "complete_ms": 1252.6301669999925,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1258.4563424536425,
+      "dispatched_ms": 1260.6095419999974,
+      "complete_ms": 1266.6634999999928,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1278.3300761519008,
+      "dispatched_ms": 1280.4691669999925,
+      "complete_ms": 1285.0051249999979,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1295.1061710114839,
+      "dispatched_ms": 1297.7883329999997,
+      "complete_ms": 1303.995416999996,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1307.7088185869434,
+      "dispatched_ms": 1308.692542000003,
+      "complete_ms": 1312.9807079999978,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1323.3865746948306,
+      "dispatched_ms": 1325.8679580000035,
+      "complete_ms": 1331.221666999994,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1345.2160630897868,
+      "dispatched_ms": 1346.675542,
+      "complete_ms": 1353.4816669999968,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1355.5762176790627,
+      "dispatched_ms": 1356.6369579999957,
+      "complete_ms": 1361.4519169999967,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1374.1445095596976,
+      "dispatched_ms": 1378.3771669999965,
+      "complete_ms": 1383.9844169999935,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1392.2903163984636,
+      "dispatched_ms": 1395.7749589999935,
+      "complete_ms": 1401.3760419999953,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1410.9753954884006,
+      "dispatched_ms": 1412.8746250000006,
+      "complete_ms": 1418.5921250000035,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1429.141138869763,
+      "dispatched_ms": 1433.200083999992,
+      "complete_ms": 1439.6356670000046,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1439.9987539427614,
+      "dispatched_ms": 1439.7960000000012,
+      "complete_ms": 1445.6907919999935,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1458.2681950908698,
+      "dispatched_ms": 1461.0917919999906,
+      "complete_ms": 1466.6338749999995,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1472.3701004091467,
+      "dispatched_ms": 1474.360292,
+      "complete_ms": 1479.2079169999965,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1491.5140346728015,
+      "dispatched_ms": 1494.650833999998,
+      "complete_ms": 1499.8529589999948,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1509.2126489135887,
+      "dispatched_ms": 1511.545499999997,
+      "complete_ms": 1517.5379589999948,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1521.0143825714958,
+      "dispatched_ms": 1523.5654589999967,
+      "complete_ms": 1529.4071670000021,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1541.3669234972665,
+      "dispatched_ms": 1543.4882919999923,
+      "complete_ms": 1547.9808749999934,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1556.3496027071208,
+      "dispatched_ms": 1559.2572500000017,
+      "complete_ms": 1564.4283339999988,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1575.3223831022397,
+      "dispatched_ms": 1577.6454169999993,
+      "complete_ms": 1582.4791670000025,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1591.6893278924006,
+      "dispatched_ms": 1595.0877920000012,
+      "complete_ms": 1600.4061670000028,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1608.3102571804093,
+      "dispatched_ms": 1609.8336249999932,
+      "complete_ms": 1614.0507920000005,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1628.6445441457047,
+      "dispatched_ms": 1633.0005840000013,
+      "complete_ms": 1638.603833999994,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1640.7379806060894,
+      "dispatched_ms": 1643.154917000004,
+      "complete_ms": 1648.8534589999945,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1656.7640014625304,
+      "dispatched_ms": 1659.498083999992,
+      "complete_ms": 1664.2138750000015,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1675.7026052556162,
+      "dispatched_ms": 1679.2999589999908,
+      "complete_ms": 1685.2119590000002,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1688.35165758281,
+      "dispatched_ms": 1691.3995000000027,
+      "complete_ms": 1696.1487089999991,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1710.610661487008,
+      "dispatched_ms": 1712.8986670000045,
+      "complete_ms": 1721.479875,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1725.5438838744242,
+      "dispatched_ms": 1726.5204589999996,
+      "complete_ms": 1732.1367090000024,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1742.954275395737,
+      "dispatched_ms": 1744.840584000002,
+      "complete_ms": 1749.2658749999919,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1756.9508470586209,
+      "dispatched_ms": 1759.2581669999986,
+      "complete_ms": 1762.949333999998,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1771.023427984824,
+      "dispatched_ms": 1773.868667000002,
+      "complete_ms": 1779.1764999999914,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1789.5784683538,
+      "dispatched_ms": 1792.2944590000043,
+      "complete_ms": 1798.1860419999975,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1807.1060723693618,
+      "dispatched_ms": 1809.7282089999994,
+      "complete_ms": 1813.7915840000005,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1827.457684698889,
+      "dispatched_ms": 1830.254791999991,
+      "complete_ms": 1835.8828340000032,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1842.5825907854132,
+      "dispatched_ms": 1843.7137089999992,
+      "complete_ms": 1848.1321249999924,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1858.7699900723173,
+      "dispatched_ms": 1860.8646670000012,
+      "complete_ms": 1867.1050419999915,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1874.8928632001798,
+      "dispatched_ms": 1878.3316669999977,
+      "complete_ms": 1883.0395840000024,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1895.4139190182539,
+      "dispatched_ms": 1897.5656249999986,
+      "complete_ms": 1902.3733340000035,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1907.6745380565947,
+      "dispatched_ms": 1910.4911670000035,
+      "complete_ms": 1916.4770000000003,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1928.3900348685893,
+      "dispatched_ms": 1929.6727499999947,
+      "complete_ms": 1938.412416999995,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1940.4995412703636,
+      "dispatched_ms": 1941.798708999997,
+      "complete_ms": 1945.9128749999904,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1958.467058484697,
+      "dispatched_ms": 1960.8987919999947,
+      "complete_ms": 1964.9452089999927,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1978.8180961125718,
+      "dispatched_ms": 1981.434292000003,
+      "complete_ms": 1987.546249999994,
+      "outcome": "success",
+      "http_status": 200
+    },
+    {
+      "scheduled_ms": 1994.920546558675,
+      "dispatched_ms": 1996.8510839999994,
+      "complete_ms": 2001.2811249999913,
+      "outcome": "success",
+      "http_status": 200
+    }
+  ]
+}

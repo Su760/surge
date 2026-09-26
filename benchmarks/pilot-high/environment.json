@@ -1,0 +1,33 @@
+{
+  "source_commit": "6baca3a32d523c21c5a204b8642921635d486d48",
+  "os": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.39",
+  "machine": "aarch64",
+  "python": "3.12.3",
+  "available_cores": 12,
+  "affinity_cores": 12,
+  "cpu_max": "400000 100000",
+  "memory_max": "4294967296",
+  "build_type": "Release",
+  "sanitizer": "none",
+  "cmake": {
+    "CMAKE_BUILD_TYPE": "Release",
+    "CMAKE_CXX_COMPILER": "/usr/bin/c++",
+    "CMAKE_CXX_COMPILER_ID": null,
+    "CMAKE_CXX_COMPILER_VERSION": null,
+    "SURGE_SANITIZER": ""
+  },
+  "docker_cpu_limit": 4,
+  "docker_memory_limit": "4g",
+  "backend_fast_ms": 2,
+  "backend_max_concurrency": 64,
+  "handoff_capacity": 64,
+  "gateway_max_connections": 256,
+  "gateway_max_upstreams": 64,
+  "max_generator_inflight": 256,
+  "timeout_s": 2,
+  "warmup_s": 0.5,
+  "measured_duration_s": 2.0,
+  "rates_per_s": [1000, 1600, 2400],
+  "repetitions": 1,
+  "seed_base": 20260926
+}

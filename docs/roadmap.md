@@ -10,7 +10,7 @@ Status: implemented. One acceptor hands move-only sockets to configurable worker
 
 ## Milestone 3 — admission policies
 
-Implement comparable fixed, latency-adaptive, and deadline/request-class-aware policies behind one small interface. Acceptance requires identical workload inputs, explicit rejection decisions, policy state observability, and tests for each decision boundary.
+Before adaptive admission experiments, use the [fresh-connection baseline](performance.md) to establish direct-backend and one-/four-worker behavior and its limits. Implement comparable fixed, latency-adaptive, and deadline/request-class-aware policies behind one small interface. Acceptance requires identical workload inputs, explicit rejection decisions, policy state observability, and tests for each decision boundary.
 
 ## Milestone 4 — reproducible open-loop experiments
 

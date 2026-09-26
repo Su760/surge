@@ -28,3 +28,13 @@ Approved by the user's explicit instruction to finalize and publish milestone 1 
 - [x] Review the staged diff, commit, push `main` without force, and verify CI for the exact commit.
 
 Approved by the user's instruction to implement, verify, commit, and publish milestone 2.
+
+# Performance baseline milestone
+
+- [x] Add a bounded open-loop fresh-connection harness with reconciled outcomes, latency and resource metrics.
+- [x] Add focused accounting and metric tests; run the existing Linux checks once in a cached Release image.
+- [x] Run a short pilot, fix three offered rates, and collect three repetitions per direct/one-worker/four-worker condition with alternating order.
+- [x] Publish raw trial data, environment and commands, an evidence-based report, and a roadmap update.
+- [x] Review the diff and tracked files, commit and push without force, then report CI for the pushed commit.
+
+Authorized by the user's performance-baseline request, including commit and push. Stop before optimization.
