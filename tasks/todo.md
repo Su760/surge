@@ -73,3 +73,15 @@ Scope correction during execution: the new trial filename variable was shadowed 
 Validation: 34 Python tests and all four Linux Release CTest suites passed after the persistence repair. The audit reconciled 192,000 retained measured arrivals; all 288,000 reported measured outcomes succeeded. Six measured windows and warmups passed the unchanged generator guard; one excluded warmup had 29 backend timeouts. All six cleanup records show TERM exit (-15), no KILL and no cleanup errors. No further measurements.
 
 Implementation and evidence: `350d6794275176a75c8759e4b0d96513502bae8e`, pushed to origin/main. [Exact-SHA CI](https://github.com/Su760/surge/actions/runs/37087629507) passed Debug, ASan, UBSan, and TSan. Scope and staged-file review found no new environment, secret, key, or database files. This documentation-only follow-up will receive its own exact-SHA CI verification before the final response. Stop after this milestone; full raw retention failed for two trials, so the comparison remains inconclusive.
+
+# Evidence-retention closeout
+
+- [x] Reject populated output directories and validate every planned output filename before writes or child launches; preserve empty Docker bind-mount support.
+- [x] Create metadata, raw results, cleanup sidecars, and logs exclusively; update this run's index atomically. Prove refusal preserves bytes and prevents execution, collisions fail early, and valid raw files remain readable/distinct.
+- [x] Run relevant correctness checks, document the completed fix and paused status, and review scope/secrets.
+
+Approved by the user's focused closeout request. Intended edits: tools/performance.py, tests/test_performance.py, docs/performance.md, tasks/todo.md. Preserve all benchmark evidence and the explicitly inconclusive backlog comparison. No performance experiments or gateway changes. Surge pauses after this closeout; further work requires a new request.
+
+Validation: 42 Python tests passed locally; all four Linux CTest suites passed in the Release image with current harness/tests mounted read-only and in a fresh Debug build. Temporary regression data used a Docker bind mount. The new refusal/overwrite regressions were observed failing before the fix; valid-path tests use mocked measurements and subprocesses. No performance experiment ran. All existing benchmark artifacts and gateway/backend/CI code are unchanged.
+
+Status: **paused** after the completed evidence-retention fix. The backlog comparison remains **inconclusive**. Commit/push and exact-final-SHA CI verification are approved and will be reported in the final closeout; no additional benchmark or gateway work will follow.

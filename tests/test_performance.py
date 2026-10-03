@@ -1,7 +1,9 @@
 """Correctness checks only: CI never runs a performance experiment."""
 
 import asyncio
+from contextlib import redirect_stderr
 import gzip
+import io
 import json
 from pathlib import Path
 import signal
@@ -289,6 +291,161 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
             for backlog in (5, 256):
                 with gzip.open(Path(directory) / f"0001-1-direct-backlog{backlog:04d}.json.gz", "rt") as stream:
                     self.assertEqual(json.load(stream)["backend_listen_backlog"], backlog)
+
+
+class PersistenceTests(unittest.IsolatedAsyncioTestCase):
+    def argv(self, directory, *rates):
+        return ["performance.py", "--output", str(directory), "--source-commit", "test",
+                "--rates", *map(str, rates), "--repetitions", "1", "--direct-only"]
+
+    async def test_populated_output_is_unchanged_and_launches_no_process(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            for filename in ("environment.json", "index.json", ".hidden",
+                             "1600-1-direct-backlog0005.json.gz",
+                             "1600-1-direct-backlog0005.backend.stdout.txt"):
+                (directory / filename).write_bytes(b"original evidence: " + filename.encode())
+            (directory / "nested").mkdir()
+            (directory / "nested" / "data").write_bytes(b"nested evidence")
+            before = {str(p.relative_to(directory)): p.read_bytes()
+                      for p in directory.rglob("*") if p.is_file()}
+            with patch.object(sys, "argv", self.argv(directory, 1600)), \
+                 patch.object(performance, "environment", return_value={}) as metadata, \
+                 patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(
+                     side_effect=AssertionError("child launch forbidden"))) as launch, \
+                 redirect_stderr(io.StringIO()) as errors:
+                with self.assertRaises(SystemExit) as stopped:
+                    await performance.main()
+            self.assertEqual(stopped.exception.code, 2)
+            self.assertIn("nonempty", errors.getvalue())
+            metadata.assert_not_called()
+            launch.assert_not_awaited()
+            self.assertEqual({str(p.relative_to(directory)): p.read_bytes()
+                              for p in directory.rglob("*") if p.is_file()}, before)
+
+    async def test_duplicate_rates_fail_before_output_creation_or_execution(self):
+        for direct_only in (True, False):
+            with self.subTest(direct_only=direct_only), tempfile.TemporaryDirectory() as temporary:
+                directory = Path(temporary) / "not-created"
+                argv = self.argv(directory, 1600, 1600)
+                if not direct_only:
+                    argv.remove("--direct-only")
+                with patch.object(sys, "argv", argv), \
+                     patch.object(performance, "environment", return_value={}) as metadata, \
+                     patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(
+                         side_effect=AssertionError("child launch forbidden"))) as launch, \
+                     redirect_stderr(io.StringIO()) as errors:
+                    with self.assertRaises(SystemExit) as stopped:
+                        await performance.main()
+                self.assertEqual(stopped.exception.code, 2)
+                self.assertIn("duplicate", errors.getvalue())
+                metadata.assert_not_called()
+                launch.assert_not_awaited()
+                self.assertFalse(directory.exists())
+
+    async def test_complete_plan_collision_is_rejected_even_with_distinct_seeds(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            with patch.object(sys, "argv", self.argv(directory, 1600)), \
+                 patch.object(performance, "trial_plan", return_value=[
+                     ("direct", 1600, 1, 10, 5), ("direct", 1600, 1, 11, 5)]), \
+                 patch.object(performance, "environment", return_value={}) as metadata, \
+                 patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(
+                     side_effect=AssertionError("child launch forbidden"))) as launch, \
+                 redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    await performance.main()
+            metadata.assert_not_called()
+            launch.assert_not_awaited()
+            self.assertEqual(list(directory.iterdir()), [])
+
+    async def test_raw_and_cleanup_sidecar_refuse_existing_files(self):
+        for completed in (True, False):
+            with self.subTest(completed=completed), tempfile.TemporaryDirectory() as temporary:
+                result_path = Path(temporary) / "trial.json.gz"
+                existing = result_path if completed else Path(temporary) / "trial.cleanup.json"
+                original = b"retained raw or cleanup evidence"
+                existing.write_bytes(original)
+                with self.assertRaises(FileExistsError):
+                    await performance.cleanup_trial({}, [], {} if completed else None,
+                                                    result_path, .1, .1)
+                self.assertEqual(existing.read_bytes(), original)
+
+    async def test_trial_log_collision_preserves_bytes_before_child_launch(self):
+        args = SimpleNamespace(backend_concurrency=64, backend_fast_ms=2,
+                               handoff_budget=64, max_connections=256, max_upstreams=64,
+                               gateway_drain_timeout_ms=5000, shutdown_margin_s=2, kill_wait_s=2)
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            log = directory / "1600-1-direct-backlog0005.backend.stdout.txt"
+            log.write_bytes(b"original backend log")
+            with patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(
+                    side_effect=AssertionError("child launch forbidden"))) as launch:
+                with self.assertRaises(FileExistsError):
+                    await performance.trial("direct", 1600, 1, 10, args, directory)
+            launch.assert_not_awaited()
+            self.assertEqual(log.read_bytes(), b"original backend log")
+
+    async def test_metadata_claim_preserves_a_competing_run(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            def competing_run(args):
+                (directory / "environment.json").write_bytes(b"other run claimed this directory")
+                return {}
+            with patch.object(sys, "argv", self.argv(directory, 1600)), \
+                 patch.object(performance, "environment", side_effect=competing_run), \
+                 patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(
+                     side_effect=AssertionError("child launch forbidden"))) as launch:
+                with self.assertRaises(FileExistsError):
+                    await performance.main()
+            launch.assert_not_awaited()
+            self.assertEqual((directory / "environment.json").read_bytes(),
+                             b"other run claimed this directory")
+            self.assertEqual([p.name for p in directory.iterdir()], ["environment.json"])
+
+    def test_failed_index_update_leaves_previous_index_readable(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "index.json"
+            original = b'[{"file":"first.json.gz"}]\n'
+            path.write_bytes(original)
+            with self.assertRaises(TypeError):
+                performance.update_index(path, [{"file": "first.json.gz"}, {"bad": object()}])
+            self.assertEqual(path.read_bytes(), original)
+            self.assertEqual(json.loads(path.read_text()), [{"file": "first.json.gz"}])
+            self.assertEqual([p.name for p in directory.iterdir()], ["index.json"])
+            performance.update_index(path, [{"file": "first.json.gz"}, {"file": "second.json.gz"}])
+            self.assertEqual(json.loads(path.read_text()),
+                             [{"file": "first.json.gz"}, {"file": "second.json.gz"}])
+
+    async def test_empty_mount_and_new_directory_retain_readable_paired_trials(self):
+        process = Mock(pid=123, returncode=0, wait=AsyncMock(return_value=0))
+        for existing_directory in (True, False):
+            with self.subTest(existing_directory=existing_directory), tempfile.TemporaryDirectory() as temporary:
+                directory = Path(temporary) if existing_directory else Path(temporary) / "new-run"
+                argv = self.argv(directory, 1) + ["--backend-backlogs", "5", "256",
+                                                 "--warmup-s", "1", "--duration-s", "1"]
+                with patch.object(sys, "argv", argv), \
+                     patch.object(performance, "environment", return_value={"case": "empty mount"}), \
+                     patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(return_value=process)), \
+                     patch.object(performance, "wait_port", AsyncMock()), \
+                     patch.object(performance, "load", AsyncMock(return_value=([record()], 1))), \
+                     patch.object(performance.os, "sched_getaffinity", return_value={0}, create=True), \
+                     patch.object(performance, "read_optional", return_value="4096"):
+                    await performance.main()
+                self.assertEqual(json.loads((directory / "environment.json").read_text()),
+                                 {"case": "empty mount"})
+                index = json.loads((directory / "index.json").read_text())
+                self.assertEqual([item["file"] for item in index], [
+                    "0001-1-direct-backlog0005.json.gz", "0001-1-direct-backlog0256.json.gz"])
+                for item, backlog in zip(index, (5, 256), strict=True):
+                    with gzip.open(directory / item["file"], "rt") as stream:
+                        raw = json.load(stream)
+                    self.assertEqual(raw["backend_listen_backlog"], backlog)
+                    self.assertEqual(raw["records"], [record()])
+                    for log in item["logs"].values():
+                        self.assertTrue((directory / log).is_file())
+                self.assertFalse((directory / ".index.json.tmp").exists())
 
 
 class RequestTests(unittest.IsolatedAsyncioTestCase):

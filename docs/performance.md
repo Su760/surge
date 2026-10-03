@@ -580,3 +580,45 @@ locally; Linux Release CTest passes all four suites, including benchmark-unit an
 integration with one/four workers. The existing GitHub Actions matrix runs these
 correctness checks under Debug, ASan, UBSan, and TSan; it runs no performance
 experiment. Exact pushed-SHA verification is reported with the commit/CI links.
+
+## Evidence-retention closeout — paused
+
+The harness now refuses a nonempty `--output` directory before writing metadata,
+logs, results, or launching any child. An existing empty directory is accepted,
+including a Docker bind-mount target; a missing directory is created after plan
+validation. Hidden files and subdirectories count as populated. Keep protocol
+files and redirected console output outside the empty result directory at startup.
+There is no overwrite or resume option.
+
+Before execution, the complete trial plan is checked for duplicate raw, cleanup,
+and log filenames using the same trial stem as persistence. Duplicate offered
+rates are rejected even when their schedule seeds differ. Environment metadata,
+the initial index, per-trial raw gzip files, cleanup sidecars, and stdout/stderr
+logs are created exclusively. Existing paths therefore raise an error instead of
+being truncated. Exclusive environment creation also prevents competing starters
+from both claiming the same initially empty output directory.
+
+Only the index created by the new run is intentionally replaced: each update is
+written to an exclusively created temporary file in that directory, closed, and
+atomically renamed over the index using
+[os.replace](https://docs.python.org/3.12/library/os.html#os.replace). A failed
+serialization/write keeps the prior
+index readable and removes the temporary file; an existing temporary path is
+refused. This protects against partial index updates, not power-loss durability.
+No changes are made to the recorded schedules, measurements, or gateway behavior.
+
+Focused regressions exercise populated-directory refusal with byte-for-byte
+preservation and zero child launches, duplicate-rate and complete-plan collisions,
+exclusive raw/log/cleanup writes, competing metadata creation, failed index
+serialization, and distinct readable paired outputs in both an empty mounted
+workspace and a newly created directory. Successful-path tests mock measurement
+and child execution; they do not generate benchmark traffic. Existing evidence
+is unchanged. The backlog comparison remains **inconclusive**; lost raw files
+have not been recreated, replaced, or reinterpreted.
+
+**Surge is paused after this closeout.** No additional performance experiment or
+gateway work is part of this fix. Any future benchmark must use a fresh, empty
+output directory and requires a new request. Correctness results and exact-SHA
+commit/CI verification are reported with this closeout. Validation: **42 Python
+tests passed**, and all four Linux CTest suites passed in the Release test image
+and a fresh Debug build, with regression temporary files on a Docker bind mount.

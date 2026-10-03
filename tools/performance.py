@@ -429,18 +429,18 @@ async def cleanup_trial(processes: dict, handles: list, result: dict | None,
             result["cleanup"] = cleanup
             result["process_returncodes"] = {name: item["returncode"]
                                              for name, item in cleanup["processes"].items()}
-            with gzip.open(result_path, "wt", encoding="utf-8", compresslevel=6) as output:
+            with gzip.open(result_path, "xt", encoding="utf-8", compresslevel=6) as output:
                 json.dump(result, output, separators=(",", ":"))
                 output.write("\n")
         else:
             path = result_path.with_name(result_path.name.removesuffix(".json.gz") + ".cleanup.json")
-            path.write_text(json.dumps(cleanup, indent=2) + "\n")
+            write_json_exclusive(path, cleanup)
     return cleanup
 
 
 async def trial(config: str, rate: int, repetition: int, seed: int, args: argparse.Namespace,
                 directory: Path, backlog: int = 5) -> dict:
-    stem = f"{rate:04d}-{repetition}-{config}-backlog{backlog:04d}"
+    stem = trial_stem(config, rate, repetition, backlog)
     result_name = stem + ".json.gz"
     workers = 1 if config == "one" else 4
     backend_command = ["python3", "tools/backend.py", "--port", str(BACKEND_PORT),
@@ -466,7 +466,7 @@ async def trial(config: str, rate: int, repetition: int, seed: int, args: argpar
             streams = {}
             for stream in ("stdout", "stderr"):
                 filename = f"{stem}.{name}.{stream}.txt"
-                handle = (directory / filename).open("wb")
+                handle = (directory / filename).open("xb")
                 handles.append(handle)
                 streams[stream] = handle
                 log_files[f"{name}_{stream}"] = filename
@@ -578,6 +578,44 @@ def trial_plan(args: argparse.Namespace) -> list[tuple]:
     return plan
 
 
+def trial_stem(config: str, rate: int, repetition: int, backlog: int) -> str:
+    return f"{rate:04d}-{repetition}-{config}-backlog{backlog:04d}"
+
+
+def validate_trial_plan(plan: list[tuple]) -> None:
+    seen = set()
+    for config, rate, repetition, seed, backlog in plan:
+        stem = trial_stem(config, rate, repetition, backlog)
+        filenames = [stem + ".json.gz", stem + ".cleanup.json"]
+        processes = ("backend",) if config == "direct" else ("backend", "gateway")
+        filenames.extend(f"{stem}.{process}.{stream}.txt"
+                         for process in processes for stream in ("stdout", "stderr"))
+        for filename in filenames:
+            if filename in seen:
+                raise ValueError(f"duplicate trial output filename: {filename}")
+            seen.add(filename)
+
+
+def write_json_exclusive(path: Path, data) -> None:
+    with path.open("x", encoding="utf-8") as output:
+        json.dump(data, output, indent=2)
+        output.write("\n")
+
+
+def update_index(path: Path, index: list) -> None:
+    # This index was exclusively created by the new run. Write beside it so
+    # replacement stays on the same filesystem, including Docker bind mounts.
+    temporary = path.with_name(f".{path.name}.tmp")
+    output = temporary.open("x", encoding="utf-8")
+    try:
+        with output:
+            json.dump(index, output, indent=2)
+            output.write("\n")
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True)
@@ -622,15 +660,26 @@ async def main() -> None:
         parser.error("backlogs must be distinct and positive")
     if not args.direct_only and len(args.backend_backlogs) != 1:
         parser.error("multiple backend backlogs require --direct-only")
+    plan = trial_plan(args)
+    try:
+        validate_trial_plan(plan)
+    except ValueError as error:
+        parser.error(str(error))
     directory = Path(args.output)
     directory.mkdir(parents=True, exist_ok=True)
+    if any(directory.iterdir()):
+        parser.error(f"refusing nonempty experiment output directory: {directory}")
     metadata = environment(args)
-    (directory / "environment.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    # Exclusive metadata creation also prevents two starters from claiming
+    # the same initially empty directory before either launches a child.
+    write_json_exclusive(directory / "environment.json", metadata)
     index = []
-    for config, rate, repetition, seed, backlog in trial_plan(args):
+    index_path = directory / "index.json"
+    write_json_exclusive(index_path, index)
+    for config, rate, repetition, seed, backlog in plan:
         completed = await trial(config, rate, repetition, seed, args, directory, backlog)
         index.append(completed)
-        (directory / "index.json").write_text(json.dumps(index, indent=2) + "\n")
+        update_index(index_path, index)
         if any(not item["reaped"] for item in completed["cleanup"]["processes"].values()):
             raise RuntimeError("cleanup left an unreaped child; saved completed trial and stopping")
 
