@@ -492,13 +492,13 @@ reported dispatched measured response. The excluded warmup of trial 5 reports
 failures. Passing the generator guard is separate from backend success.
 
 | Trial / seed suffix | Backlog | Raw retained | Measured successes | Drain s | Success/s including drain | Dispatch p99 ms (warmup / measured) | Measured max dispatch lag ms |
-|---|---:|:---:|---:|---:|---:|---:|---:|
-| 1 / 02 | 5 | no | 47990 | 0.7553 | 1560.7 | 1.81 / 1.82 | 8.50 |
-| 2 / 02 | 256 | no | 47994 | 0.0035 | 1599.8 | 2.68 / 1.79 | 5.91 |
-| 3 / 03 | 256 | yes | 47994 | 0.0040 | 1599.8 | 1.87 / 1.85 | 10.02 |
-| 4 / 03 | 5 | yes | 47992 | 0.0045 | 1599.8 | 1.75 / 1.81 | 7.75 |
-| 5 / 04 | 5 | yes | 47992 | 0.0037 | 1599.8 | 1.91 / 1.93 | 6.58 |
-| 6 / 04 | 256 | yes | 47993 | 0.0046 | 1599.8 | 1.80 / 1.97 | 59.45 |
+| ------------------- | ------: | :----------: | -----------------: | ------: | ------------------------: | ----------------------------------: | ---------------------------: |
+| 1 / 02              |       5 |      no      |              47990 |  0.7553 |                    1560.7 |                         1.81 / 1.82 |                         8.50 |
+| 2 / 02              |     256 |      no      |              47994 |  0.0035 |                    1599.8 |                         2.68 / 1.79 |                         5.91 |
+| 3 / 03              |     256 |     yes      |              47994 |  0.0040 |                    1599.8 |                         1.87 / 1.85 |                        10.02 |
+| 4 / 03              |       5 |     yes      |              47992 |  0.0045 |                    1599.8 |                         1.75 / 1.81 |                         7.75 |
+| 5 / 04              |       5 |     yes      |              47992 |  0.0037 |                    1599.8 |                         1.91 / 1.93 |                         6.58 |
+| 6 / 04              |     256 |     yes      |              47993 |  0.0046 |                    1599.8 |                         1.80 / 1.97 |                        59.45 |
 
 All six warmups and measurements pass the original guard. Peak generator
 in-flight counts in order are 41,33,43,32,38,225, within the fixed cap. The large
@@ -508,13 +508,13 @@ confounds. Nominal-window successful completions remain distinct from eventual
 successes and rates including drain.
 
 | Trial | Backlog | Successful response p99 / max ms | Response >1s | Connect p99 / max ms | Connect >1s | Connect→header p99 / max ms | Header→body p99 / max ms |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 1* | 5 | 5.64 / 1263.03 | 83 | 0.67 / 1062.17 | 83 | 5.05 / 211.78 | 0.51 / 3.19 |
-| 2* | 256 | 5.40 / 18.18 | 0 | 0.59 / 5.72 | 0 | 4.99 / 17.69 | 0.52 / 11.77 |
-| 3 | 256 | 5.80 / 22.50 | 0 | 0.62 / 16.44 | 0 | 5.28 / 18.72 | 0.52 / 5.83 |
-| 4 | 5 | 5.29 / 1462.57 | 34 | 0.52 / 1049.21 | 34 | 4.86 / 419.23 | 0.50 / 5.64 |
-| 5 | 5 | 5.31 / 1472.87 | 33 | 0.62 / 1064.92 | 33 | 4.81 / 420.37 | 0.69 / 4.20 |
-| 6 | 256 | 24.61 / 139.26 | 0 | 0.83 / 77.73 | 0 | 16.67 / 139.11 | 0.58 / 11.87 |
+| ----- | ------: | -------------------------------: | -----------: | -------------------: | ----------: | --------------------------: | -----------------------: |
+| 1*    |       5 |                   5.64 / 1263.03 |           83 |       0.67 / 1062.17 |          83 |               5.05 / 211.78 |              0.51 / 3.19 |
+| 2*    |     256 |                     5.40 / 18.18 |            0 |          0.59 / 5.72 |           0 |                4.99 / 17.69 |             0.52 / 11.77 |
+| 3     |     256 |                     5.80 / 22.50 |            0 |         0.62 / 16.44 |           0 |                5.28 / 18.72 |              0.52 / 5.83 |
+| 4     |       5 |                   5.29 / 1462.57 |           34 |       0.52 / 1049.21 |          34 |               4.86 / 419.23 |              0.50 / 5.64 |
+| 5     |       5 |                   5.31 / 1472.87 |           33 |       0.62 / 1064.92 |          33 |               4.81 / 420.37 |              0.69 / 4.20 |
+| 6     |     256 |                   24.61 / 139.26 |            0 |         0.83 / 77.73 |           0 |              16.67 / 139.11 |             0.58 / 11.87 |
 
 `*` Summary-only evidence. Every phase is measured at the client, including
 client event-loop/OS scheduling; connect is dispatch→connected, header is
@@ -523,13 +523,13 @@ network or backend service times. Header and body phases have zero >1s samples
 in all six stored summaries. Rare >1s connect tails are invisible at p99 here.
 
 | Trial | Backlog | Measured ListenOverflows / ListenDrops | Measured SYN retransmits | Measured RetransSegs | Drain SYN retransmits / RetransSegs |
-|---|---:|---:|---:|---:|---:|
-| 1* | 5 | 102 / 102 | 79 | 88 | 4 / 4 |
-| 2* | 256 | 0 / 0 | 0 | 0 | 0 / 0 |
-| 3 | 256 | 0 / 0 | 0 | 0 | 0 / 0 |
-| 4 | 5 | 60 / 60 | 34 | 48 | 0 / 0 |
-| 5 | 5 | 71 / 71 | 33 | 65 | 0 / 0 |
-| 6 | 256 | 0 / 0 | 0 | 0 | 0 / 0 |
+| ----- | ------: | -------------------------------------: | -----------------------: | -------------------: | ----------------------------------: |
+| 1*    |       5 |                              102 / 102 |                       79 |                   88 |                               4 / 4 |
+| 2*    |     256 |                                  0 / 0 |                        0 |                    0 |                               0 / 0 |
+| 3     |     256 |                                  0 / 0 |                        0 |                    0 |                               0 / 0 |
+| 4     |       5 |                                60 / 60 |                       34 |                   48 |                               0 / 0 |
+| 5     |       5 |                                71 / 71 |                       33 |                   65 |                               0 / 0 |
+| 6     |     256 |                                  0 / 0 |                        0 |                    0 |                               0 / 0 |
 
 Drain ListenOverflows/ListenDrops are zero throughout. Measurements total 233
 listen overflows/drops, 146 SYN retransmits and 201 retransmitted segments for
