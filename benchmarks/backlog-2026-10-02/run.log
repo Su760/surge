@@ -1,0 +1,6 @@
+gateway: measured=47990/48000 eventual=48000 drops=0 lag_p99=1.82ms drain=0.755s throughput_including_drain=1560.7/s generator_limited=False
+gateway: measured=47994/48000 eventual=48000 drops=0 lag_p99=1.79ms drain=0.003s throughput_including_drain=1599.8/s generator_limited=False
+gateway: measured=47994/48000 eventual=48000 drops=0 lag_p99=1.85ms drain=0.004s throughput_including_drain=1599.8/s generator_limited=False
+gateway: measured=47992/48000 eventual=48000 drops=0 lag_p99=1.81ms drain=0.005s throughput_including_drain=1599.8/s generator_limited=False
+gateway: measured=47992/48000 eventual=48000 drops=0 lag_p99=1.93ms drain=0.004s throughput_including_drain=1599.8/s generator_limited=False
+gateway: measured=47993/48000 eventual=48000 drops=0 lag_p99=1.97ms drain=0.005s throughput_including_drain=1599.8/s generator_limited=False

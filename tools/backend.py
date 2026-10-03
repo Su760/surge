@@ -18,7 +18,11 @@ from urllib.parse import parse_qs, urlsplit
 class BoundedServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, address, handler, max_concurrency: int):
+    def __init__(self, address, handler, max_concurrency: int, listen_backlog: int = 5):
+        if listen_backlog <= 0:
+            raise ValueError("listen backlog must be positive")
+        # TCPServer's constructor binds and activates the listener.
+        self.request_queue_size = listen_backlog
         super().__init__(address, handler)
         self.slots = threading.BoundedSemaphore(max_concurrency)
 
@@ -105,17 +109,21 @@ def main() -> None:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--max-concurrency", type=int, default=8)
+    parser.add_argument("--listen-backlog", type=int, default=5)
     parser.add_argument("--fast-ms", type=float, default=0)
     parser.add_argument("--slow-ms", type=float, default=250)
     parser.add_argument("--hang-ms", type=float, default=5000)
     parser.add_argument("--fragment-ms", type=float, default=10)
     args = parser.parse_args()
-    server = BoundedServer((args.host, args.port), Handler, args.max_concurrency)
+    if args.listen_backlog <= 0:
+        parser.error("listen backlog must be positive")
+    server = BoundedServer((args.host, args.port), Handler, args.max_concurrency,
+                           args.listen_backlog)
     server.fast_seconds = args.fast_ms / 1000
     server.slow_seconds = args.slow_ms / 1000
     server.hang_seconds = args.hang_ms / 1000
     server.fragment_delay_seconds = args.fragment_ms / 1000
-    print(f"backend listening on {args.host}:{args.port}", flush=True)
+    print(f"backend listening on {args.host}:{args.port}, backlog={server.request_queue_size}", flush=True)
     try:
         server.serve_forever(poll_interval=0.05)
     except KeyboardInterrupt:

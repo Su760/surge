@@ -441,7 +441,7 @@ async def cleanup_trial(processes: dict, handles: list, result: dict | None,
 async def trial(config: str, rate: int, repetition: int, seed: int, args: argparse.Namespace,
                 directory: Path, backlog: int = 5) -> dict:
     stem = f"{rate:04d}-{repetition}-{config}-backlog{backlog:04d}"
-    result_name = stem + ".json.gz"
+    name = stem + ".json.gz"
     workers = 1 if config == "one" else 4
     backend_command = ["python3", "tools/backend.py", "--port", str(BACKEND_PORT),
                        "--max-concurrency", str(args.backend_concurrency),
@@ -495,10 +495,10 @@ async def trial(config: str, rate: int, repetition: int, seed: int, args: argpar
                   "diagnostics": diagnostics, "process_settings": process_settings,
                   "logs": log_files, "records": records}
     finally:
-        await cleanup_trial(processes, handles, result, directory / result_name,
+        await cleanup_trial(processes, handles, result, directory / name,
                             shutdown_timeout(args.gateway_drain_timeout_ms, args.shutdown_margin_s),
                             args.kill_wait_s)
-    print(f"{result_name}: measured={summary['successes_in_measured_window']}/{summary['scheduled']} "
+    print(f"{name}: measured={summary['successes_in_measured_window']}/{summary['scheduled']} "
           f"eventual={summary['counts']['success']} drops={summary['counts']['generator_drop']} "
           f"lag_p99={summary['dispatch_lag']['p99_ms']:.2f}ms "
           f"drain={summary['drain_duration_s']:.3f}s "
@@ -506,7 +506,7 @@ async def trial(config: str, rate: int, repetition: int, seed: int, args: argpar
           f"generator_limited={summary['generator_limited']}", flush=True)
     return {key: result[key] for key in ("config", "rate_per_s", "repetition", "seed",
                                        "backend_listen_backlog", "kernel_somaxconn", "summary",
-                                       "warmup", "diagnostics", "logs", "cleanup")} | {"file": result_name}
+                                       "warmup", "diagnostics", "logs", "cleanup")} | {"file": name}
 
 
 def environment(args: argparse.Namespace) -> dict:

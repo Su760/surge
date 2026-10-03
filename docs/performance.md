@@ -380,3 +380,199 @@ Local sanitizer runs were not repeated because gateway/backend sources are
 unchanged; the existing CI matrix runs Debug, ASan, UBSan, and TSan correctness
 checks, including the newly registered benchmark unit suite, on the pushed SHA.
 No performance experiment runs in CI.
+
+## Bounded cleanup and backlog follow-up — 2026-10-02
+
+**The six-trial comparison is inconclusive because two raw outputs were lost.**
+All six stored summaries pass the unchanged generator guard and show a consistent
+association between backlog 5 and rare connect tails/listen pressure. That is
+exploratory evidence, not a complete validated comparison. No failed trial was
+rerun, no threshold was relaxed, and no gateway code was changed. Original results
+and their limitations above remain unchanged.
+
+### Harness repair and lifecycle checks
+
+Previously, `tools/performance.py` waited five seconds after TERM, equal to
+Surge's configured default drain deadline (`include/surge/config.hpp:22`). A
+legitimate drain could collide with the harness timeout. TERM/KILL exit races
+could raise `ProcessLookupError`; the sequential finalizer then skipped other
+children, log closure, and result writing. The harness now explicitly passes
+`--gateway-drain-timeout-ms` to Surge and computes its TERM wait as that deadline
+plus `--shutdown-margin-s` (default **5000ms + 2s = 7s**). The wait after KILL is
+also bounded (`--kill-wait-s`, default 2s).
+
+Cleanup records TERM delivery, exit races, whether KILL was sent, return code,
+reaping, and operation-specific errors. `graceful_exit` means exited without a
+harness KILL; it does not mean application-level graceful shutdown or return
+code zero. The controlled Python backend normally exits on TERM with **-15**.
+Each child and log handle is processed independently, and completed result saving
+runs after all cleanup attempts even if some fail. An unreaped child stops the
+series after writing the completed result/index; incomplete trials retain a
+cleanup sidecar. Disk write failures still propagate and cannot guarantee
+persistence. Lifecycle tests cover real delayed TERM exit and ignored TERM,
+TERM/KILL exit races, already-exited children, signaling errors, bounded failed
+reaping, cleanup/log-close exceptions, and saving completed results.
+
+Backend `--listen-backlog` is assigned before `TCPServer` binds/activates the
+socket. Default **5** is preserved explicitly. The harness adds `--direct-only`
+and `--backend-backlogs`; multiple backlogs require direct-only execution, and
+paired order reverses on alternate repetitions. Trial metadata and startup logs
+record the selected request backlog; kernel `somaxconn` is recorded separately.
+These are the requested/configured values, not observations of live queue
+occupancy. Both 5 and 256 are below the recorded **somaxconn 4096**.
+
+A filename bug introduced in this follow-up was discovered during the declared
+run: the launch loop shadowed the result filename and repeatedly wrote a file
+named `gateway`. **The first two raw files were overwritten.** Their summaries,
+resource/kernel diagnostics, cleanup records, and logs remain in the original
+index; the later four raw files were copied to distinct names before overwrite.
+The published harness uses a separate result-name variable, with a regression
+that runs two mocked direct trials and verifies both compressed outputs survive.
+The test first failed with `AssertionError: 'gateway' !=
+'0001-1-direct-backlog0005.json.gz'`, then passed after the repair. No measurement
+was repeated to replace the missing evidence.
+
+### Predeclared workload, provenance, and reproduction
+
+The [protocol](../benchmarks/backlog-2026-10-02/protocol.json) was written before
+measurement: direct backend only, 1600 offered requests/s, three paired seeds
+20261002/20261003/20261004; backlog order **5,256 / 256,5 / 5,256**. Each trial
+has a 5s excluded warmup and 30s measured arrival window. Service delay stays
+2ms, handler concurrency 64, generator in-flight cap 256, request timeout 2s,
+Docker quota four CPUs and memory limit 4GiB. There is no additional smoke trial
+in this follow-up. Generator validity remains zero drops and p99 dispatch lag
+<=10ms, reported independently for warmup and measurement.
+
+The Release build used GCC 13.3.0/Python 3.12.3 on arm64 Ubuntu 24.04 inside
+Docker 29.4.0/LinuxKit 6.12.76 on macOS 26.6.2. Actual cgroup `cpu.max` is
+`400000 100000`, `memory.max` is `4294967296`, and affinity covers all twelve
+Docker VM CPUs. Quota does not reserve or pin CPUs. All measured cgroup CPU
+throttle counts/time were zero. The unchanged gateway source base is
+`b72d0addaf0c78842c6b60e040789133ed9e50ba`; exact measured harness/backend/binary
+hashes are in [environment.json](../benchmarks/backlog-2026-10-02/environment.json).
+The exact [measured harness snapshot](../benchmarks/backlog-2026-10-02/measured-performance.py)
+preserves provenance, including its output bug; the published harness differs
+only in the result-name variable. Do not execute that archived snapshot.
+
+Reproduce with the repaired harness from this commit, writing to a fresh directory:
+
+```sh
+docker build --target build --load -t surge-backlog \
+  --build-arg BUILD_TYPE=Release --build-arg SANITIZER= .
+docker run --rm surge-backlog ctest --test-dir build --output-on-failure
+mkdir -p benchmarks/backlog-reproduction
+docker run --rm --cpus 4 --memory 4g \
+  --mount type=bind,source="$PWD/benchmarks/backlog-reproduction",target=/results \
+  surge-backlog python3 tools/performance.py \
+  --output /results --source-commit "$(git rev-parse HEAD)" \
+  --direct-only --backend-backlogs 5 256 --rates 1600 --repetitions 3 \
+  --warmup-s 5 --duration-s 30 --seed 20261002 \
+  --backend-fast-ms 2 --backend-concurrency 64 \
+  --max-inflight 256 --timeout-s 2 --docker-cpus 4 --docker-memory 4g \
+  --gateway-drain-timeout-ms 5000 --shutdown-margin-s 2 --kill-wait-s 2
+```
+
+The [evidence directory](../benchmarks/backlog-2026-10-02/README.md) contains
+all six summaries/logs, four compressed raw trials, the original index and
+intermediate snapshot, protocol, environment, actual Docker resource settings,
+run output, audit script, readable CSV/JSON summaries, and checksums. The audit
+recomputed **192,000** available measured arrivals and verified phase ordering,
+bounded concurrency, and identical schedules within the two retained pairs.
+The original index reports **288,000** measured outcomes; the first 96,000 cannot
+be independently reconciled from raw records. No pooled percentile is presented
+for an incomplete raw set.
+
+### Descriptive observations, including incomplete trials
+
+Every stored measured summary reports **48,000 eventual successes (100%)**,
+zero HTTP rejections/errors, zero timeouts/connection/protocol failures, and zero
+generator drops. Successful-response percentiles below therefore include every
+reported dispatched measured response. The excluded warmup of trial 5 reports
+7971 successes and **29 timeouts**; other warmups report 8000 successes and zero
+failures. Passing the generator guard is separate from backend success.
+
+| Trial / seed suffix | Backlog | Raw retained | Measured successes | Drain s | Success/s including drain | Dispatch p99 ms (warmup / measured) | Measured max dispatch lag ms |
+|---|---:|:---:|---:|---:|---:|---:|---:|
+| 1 / 02 | 5 | no | 47990 | 0.7553 | 1560.7 | 1.81 / 1.82 | 8.50 |
+| 2 / 02 | 256 | no | 47994 | 0.0035 | 1599.8 | 2.68 / 1.79 | 5.91 |
+| 3 / 03 | 256 | yes | 47994 | 0.0040 | 1599.8 | 1.87 / 1.85 | 10.02 |
+| 4 / 03 | 5 | yes | 47992 | 0.0045 | 1599.8 | 1.75 / 1.81 | 7.75 |
+| 5 / 04 | 5 | yes | 47992 | 0.0037 | 1599.8 | 1.91 / 1.93 | 6.58 |
+| 6 / 04 | 256 | yes | 47993 | 0.0046 | 1599.8 | 1.80 / 1.97 | 59.45 |
+
+All six warmups and measurements pass the original guard. Peak generator
+in-flight counts in order are 41,33,43,32,38,225, within the fixed cap. The large
+localized dispatch pause in trial 6 survives a p99-based guard and coincides with
+larger header/response tails; passing the guard does not eliminate scheduling
+confounds. Nominal-window successful completions remain distinct from eventual
+successes and rates including drain.
+
+| Trial | Backlog | Successful response p99 / max ms | Response >1s | Connect p99 / max ms | Connect >1s | Connect→header p99 / max ms | Header→body p99 / max ms |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1* | 5 | 5.64 / 1263.03 | 83 | 0.67 / 1062.17 | 83 | 5.05 / 211.78 | 0.51 / 3.19 |
+| 2* | 256 | 5.40 / 18.18 | 0 | 0.59 / 5.72 | 0 | 4.99 / 17.69 | 0.52 / 11.77 |
+| 3 | 256 | 5.80 / 22.50 | 0 | 0.62 / 16.44 | 0 | 5.28 / 18.72 | 0.52 / 5.83 |
+| 4 | 5 | 5.29 / 1462.57 | 34 | 0.52 / 1049.21 | 34 | 4.86 / 419.23 | 0.50 / 5.64 |
+| 5 | 5 | 5.31 / 1472.87 | 33 | 0.62 / 1064.92 | 33 | 4.81 / 420.37 | 0.69 / 4.20 |
+| 6 | 256 | 24.61 / 139.26 | 0 | 0.83 / 77.73 | 0 | 16.67 / 139.11 | 0.58 / 11.87 |
+
+`*` Summary-only evidence. Every phase is measured at the client, including
+client event-loop/OS scheduling; connect is dispatch→connected, header is
+connected→header received, body is header→body completed. These are not pure
+network or backend service times. Header and body phases have zero >1s samples
+in all six stored summaries. Rare >1s connect tails are invisible at p99 here.
+
+| Trial | Backlog | Measured ListenOverflows / ListenDrops | Measured SYN retransmits | Measured RetransSegs | Drain SYN retransmits / RetransSegs |
+|---|---:|---:|---:|---:|---:|
+| 1* | 5 | 102 / 102 | 79 | 88 | 4 / 4 |
+| 2* | 256 | 0 / 0 | 0 | 0 | 0 / 0 |
+| 3 | 256 | 0 / 0 | 0 | 0 | 0 / 0 |
+| 4 | 5 | 60 / 60 | 34 | 48 | 0 / 0 |
+| 5 | 5 | 71 / 71 | 33 | 65 | 0 / 0 |
+| 6 | 256 | 0 / 0 | 0 | 0 | 0 / 0 |
+
+Drain ListenOverflows/ListenDrops are zero throughout. Measurements total 233
+listen overflows/drops, 146 SYN retransmits and 201 retransmitted segments for
+backlog 5, versus zero for backlog 256; first-pair totals rely on stored summaries.
+Counters cover **all TCP sockets in the container network namespace**, not
+individual requests or the backend listener. They exclude nominal warmup
+snapshots but can include delayed effects of connections offered in warmup.
+Trial 5's backend stderr contains 17 broken-pipe exceptions and the measured
+counter records eleven established resets despite all measured outcomes
+succeeding. Logs lack timestamps/request IDs, so their exact phase cannot be
+attributed. All other stderr files are empty. Logs are preserved unchanged.
+
+Measured backend CPU is 45.7–58.4% of one core and generator CPU 27.8–33.2%.
+Resource sampling is separate for measurement and drain, with the actual boundary
+offset recorded (roughly -0.89 to -0.43ms: the resource snapshot
+woke slightly before the nominal boundary). Completion-window classification
+still uses the exact nominal 30s deadline. Zero cgroup throttling does not rule out short
+scheduler/backend accept pauses. All six backend processes exited after TERM,
+return code -15, with **no forced kill, cleanup error, or log-close error**.
+The direct-only series does not empirically validate a full five-second gateway
+drain; that deadline/margin relationship is covered by correctness tests.
+
+### Supported interpretation and stop
+
+The retained two pairs and first-pair stored summaries are consistent with the
+small backend accept backlog contributing to rare one-second connect tails in
+this fresh-connection workload: listen overflows and retransmission counters
+occur with backlog 5 and are absent with 256. Client scheduling and accept-path
+pauses can contribute to the observed timings; short CPU spikes, accept-queue
+occupancy, and individual retransmitted requests were not traced. This series
+cannot establish the cause of the earlier gateway tails or support a universal
+backlog choice. It applies only to this workload and Docker environment.
+
+The planned complete comparison is **inconclusive** because full raw retention
+failed for the first pair. Exactly six attempts were made. No retries, additional
+load experiments, gateway optimization, or admission changes followed. The
+remaining four trials are retained as exploratory evidence, not substituted for
+the predeclared complete set. Recommended next experiment, if separately
+approved: repeat this same six-trial protocol with the repaired persistence and
+require complete raw retention before drawing a backlog-effect conclusion.
+
+Correctness validation after the filename repair: **34 Python unit tests** pass
+locally; Linux Release CTest passes all four suites, including benchmark-unit and
+integration with one/four workers. The existing GitHub Actions matrix runs these
+correctness checks under Debug, ASan, UBSan, and TSan; it runs no performance
+experiment. Exact pushed-SHA verification is reported with the commit/CI links.

@@ -1,11 +1,19 @@
 """Correctness checks only: CI never runs a performance experiment."""
 
 import asyncio
+import gzip
+import json
+from pathlib import Path
+import signal
+import sys
+import tempfile
 import time
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from tools import performance
+from tools.backend import BoundedServer, Handler
 
 
 def record(arrival_id=0, outcome="success", scheduled=0, dispatched=2,
@@ -131,6 +139,156 @@ class MetricsTests(unittest.TestCase):
         for position in range(3):
             for config in ("direct", "one", "four"):
                 self.assertEqual(sum(order[position] == config for order in orders), 2)
+
+
+class BackendTests(unittest.TestCase):
+    def test_backlog_is_selected_before_listen_and_default_is_preserved(self):
+        observed = []
+        original = BoundedServer.server_activate
+
+        def activate(server):
+            observed.append(server.request_queue_size)
+            original(server)
+
+        with patch.object(BoundedServer, "server_activate", activate):
+            for backlog in (None, 256):
+                kwargs = {} if backlog is None else {"listen_backlog": backlog}
+                server = BoundedServer(("127.0.0.1", 0), Handler, 2, **kwargs)
+                server.server_close()
+        self.assertEqual(observed, [5, 256])
+
+    def test_direct_pairs_share_seeds_and_alternate_backlog_order(self):
+        args = Mock(rates=[1600], repetitions=3, seed=20261002,
+                    direct_only=True, backend_backlogs=[5, 256])
+        self.assertEqual(performance.trial_plan(args), [
+            ("direct", 1600, 1, 20261002, 5), ("direct", 1600, 1, 20261002, 256),
+            ("direct", 1600, 2, 20261003, 256), ("direct", 1600, 2, 20261003, 5),
+            ("direct", 1600, 3, 20261004, 5), ("direct", 1600, 3, 20261004, 256)])
+
+
+class LifecycleTests(unittest.IsolatedAsyncioTestCase):
+    def fake_process(self):
+        return Mock(returncode=None, wait=AsyncMock(return_value=0))
+
+    async def test_exit_race_before_term_is_reaped(self):
+        process = self.fake_process()
+
+        def vanished(sig):
+            process.returncode = 0
+            raise ProcessLookupError("already exited")
+
+        process.send_signal.side_effect = vanished
+        result = await performance.stop_process(process, .1, .1)
+        self.assertTrue(result["graceful_exit"])
+        self.assertEqual(result["exit_races"], ["term"])
+        self.assertEqual(result["errors"], [])
+        process.kill.assert_not_called()
+
+    async def test_exit_race_before_kill_is_reaped(self):
+        process = self.fake_process()
+        process.wait.side_effect = [TimeoutError(), 0]
+
+        def vanished():
+            process.returncode = 0
+            raise ProcessLookupError("already exited")
+
+        process.kill.side_effect = vanished
+        result = await performance.stop_process(process, .1, .1)
+        self.assertTrue(result["graceful_exit"])
+        self.assertFalse(result["forced_kill"])
+        self.assertEqual(result["exit_races"], ["kill"])
+
+    async def test_already_exited_process_receives_no_signal(self):
+        process = self.fake_process()
+        process.returncode = 3
+        result = await performance.stop_process(process, .1, .1)
+        self.assertEqual(result["status"], "already_exited")
+        self.assertEqual(result["returncode"], 3)
+        process.send_signal.assert_not_called()
+        process.kill.assert_not_called()
+
+    async def test_term_failure_still_attempts_kill_and_records_error(self):
+        process = self.fake_process()
+        process.send_signal.side_effect = PermissionError("injected TERM error")
+        process.wait.side_effect = [TimeoutError(), -9]
+        process.kill.side_effect = lambda: setattr(process, "returncode", -9)
+        result = await performance.stop_process(process, .01, .1)
+        self.assertTrue(result["forced_kill"])
+        self.assertEqual(result["errors"][0]["operation"], "term")
+        self.assertEqual(result["returncode"], -9)
+
+    async def test_unreaped_process_has_a_bounded_kill_wait_and_explicit_error(self):
+        process = self.fake_process()
+        process.wait.side_effect = [TimeoutError(), TimeoutError()]
+        result = await performance.stop_process(process, .01, .01)
+        self.assertFalse(result["reaped"])
+        self.assertEqual(result["errors"][0]["operation"], "kill_wait")
+
+    async def test_real_delayed_graceful_exit_and_forced_kill(self):
+        for ignore_term in (False, True):
+            action = "signal.SIG_IGN" if ignore_term else "lambda *_: (time.sleep(.06), sys.exit(0))"
+            code = f"import signal,time,sys; signal.signal(signal.SIGTERM, {action}); print('ready', flush=True); time.sleep(10)"
+            process = await asyncio.create_subprocess_exec(sys.executable, "-c", code,
+                                                          stdout=asyncio.subprocess.PIPE)
+            try:
+                await asyncio.wait_for(process.stdout.readline(), 2)
+                result = await performance.stop_process(process, .02 if ignore_term else .3, .3)
+                self.assertTrue(result["reaped"])
+                self.assertEqual(result["forced_kill"], ignore_term)
+                self.assertEqual(result["graceful_exit"], not ignore_term)
+                self.assertEqual(result["returncode"], -signal.SIGKILL if ignore_term else 0)
+            finally:
+                if process.returncode is None:
+                    process.kill()
+                await process.wait()
+
+    async def test_cleanup_errors_do_not_skip_other_children_logs_or_saving(self):
+        gateway, backend = self.fake_process(), self.fake_process()
+        bad_handle, good_handle = Mock(), Mock()
+        bad_handle.close.side_effect = OSError("injected close failure")
+        result = {"summary": {"counts": {"success": 7}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "completed.json.gz"
+            with patch.object(performance, "stop_process", AsyncMock(side_effect=[
+                    RuntimeError("injected cleanup failure"),
+                    {"returncode": 0, "reaped": True, "errors": []}])) as stop:
+                cleanup = await performance.cleanup_trial(
+                    {"gateway": gateway, "backend": backend},
+                    [bad_handle, good_handle], result, path, .1, .1)
+            self.assertEqual(stop.await_count, 2)
+            good_handle.close.assert_called_once()
+            self.assertEqual(len(cleanup["log_close_errors"]), 1)
+            with gzip.open(path, "rt") as saved:
+                loaded = json.load(saved)
+            self.assertEqual(loaded["summary"]["counts"]["success"], 7)
+            self.assertIn("injected cleanup failure", loaded["cleanup"]["processes"]["gateway"]["errors"][0]["message"])
+
+    def test_shutdown_margin_exceeds_configured_gateway_drain(self):
+        self.assertEqual(performance.shutdown_timeout(5000, 2), 7)
+        self.assertEqual(performance.shutdown_timeout(9000, 2), 11)
+        with self.assertRaises(ValueError):
+            performance.shutdown_timeout(5000, 0)
+
+    async def test_trial_retains_distinct_raw_files_for_each_backlog(self):
+        args = SimpleNamespace(backend_concurrency=64, backend_fast_ms=2,
+                               handoff_budget=64, max_connections=256, max_upstreams=64,
+                               gateway_drain_timeout_ms=5000, shutdown_margin_s=2, kill_wait_s=2,
+                               warmup_s=1, duration_s=1, max_inflight=256, timeout_s=2)
+        process = self.fake_process()
+        process.pid = 123
+        process.returncode = 0
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(performance.asyncio, "create_subprocess_exec", AsyncMock(return_value=process)), \
+             patch.object(performance, "wait_port", AsyncMock()), \
+             patch.object(performance, "load", AsyncMock(return_value=([record()], 1))), \
+             patch.object(performance.os, "sched_getaffinity", return_value={0}, create=True), \
+             patch.object(performance, "read_optional", return_value="4096"):
+            for backlog in (5, 256):
+                result = await performance.trial("direct", 1, 1, 10, args, Path(directory), backlog)
+                self.assertEqual(result["file"], f"0001-1-direct-backlog{backlog:04d}.json.gz")
+            for backlog in (5, 256):
+                with gzip.open(Path(directory) / f"0001-1-direct-backlog{backlog:04d}.json.gz", "rt") as stream:
+                    self.assertEqual(json.load(stream)["backend_listen_backlog"], backlog)
 
 
 class RequestTests(unittest.IsolatedAsyncioTestCase):

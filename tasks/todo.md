@@ -56,3 +56,18 @@ Smoke evidence: the initial direct 1600/s smoke failed the dispatch-lag guard (5
 Matrix evidence: all 18 trials retained; eight measured windows passed the generator guard, ten failed. Valid direct trials show connect tails and listen/SYN-retry evidence; no clean worker-scaling conclusion. One already generator-limited trial was SIGKILLed during post-measurement teardown, with a possible five-second harness/gateway deadline race; preserve that warning rather than changing runtime behavior. Recommended next experiment changes only direct-backend backlog 5 versus 256.
 
 Implementation and evidence published in `ee776f3da77668b87f30c6686de96f04e786ddc7`; [exact-SHA CI](https://github.com/Su760/surge/actions/runs/37080620100) passed Debug, ASan, UBSan, and TSan, including benchmark-unit in each job. This checklist-only completion update will also be pushed and its exact-SHA CI verified before the final response.
+
+# Cleanup and isolated backlog follow-up
+
+- [x] Add bounded, race-safe process cleanup with explicit outcomes; preserve all cleanup attempts, log closure, and completed results. Add lifecycle regressions.
+- [x] Configure backend backlog before listen, preserving default 5; add direct-only paired controls and accurate backlog/somaxconn metadata.
+- [x] Run relevant correctness checks and build Release without sanitizers.
+- [x] Attempt exactly six direct trials at 1600/s: seeds 20261002, 20261003, 20261004; backlog order 5/256, 256/5, 5/256. Keep 5s warmup, 30s measurement, 2ms service, 64 handlers, 256 generator in-flight, 2s timeout, Docker 4 CPUs/4 GiB, and existing generator guard. Retain all available evidence; no retries or threshold changes. Two raw files were lost; the comparison is inconclusive (details below).
+- [x] Append evidence, reproduction commands, limitations, and stopping point; preserve previous results.
+- [ ] Review scope and staged secrets, commit/push, and verify CI for the exact final SHA.
+
+Approved by the user's bounded follow-up. Intended edits: tools/performance.py, tools/backend.py, tests/test_performance.py, docs/performance.md, tasks/todo.md; new evidence under benchmarks/backlog-2026-10-02/. No gateway changes or additional experiments.
+
+Scope correction during execution: the new trial filename variable was shadowed by the subprocess launch loop. The first two raw files were overwritten, while their index summaries, diagnostics, and logs remain. Preserve later raw files without altering the six-trial run; add a filename regression and repair output persistence after measurement. The comparison must be reported as inconclusive, with no retries. Preserve the exact measured harness snapshot and explain its difference from the published harness.
+
+Validation: 34 Python tests and all four Linux Release CTest suites passed after the persistence repair. The audit reconciled 192,000 retained measured arrivals; all 288,000 reported measured outcomes succeeded. Six measured windows and warmups passed the unchanged generator guard; one excluded warmup had 29 backend timeouts. All six cleanup records show TERM exit (-15), no KILL and no cleanup errors. No further measurements.

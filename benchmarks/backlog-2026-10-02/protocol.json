@@ -1,0 +1,25 @@
+{
+  "declared_before_measurement": true,
+  "date": "2026-10-02",
+  "configuration": "direct",
+  "rate_per_s": 1600,
+  "backlogs": [5, 256],
+  "trials_in_order": [
+    { "repetition": 1, "seed": 20261002, "backlog": 5 },
+    { "repetition": 1, "seed": 20261002, "backlog": 256 },
+    { "repetition": 2, "seed": 20261003, "backlog": 256 },
+    { "repetition": 2, "seed": 20261003, "backlog": 5 },
+    { "repetition": 3, "seed": 20261004, "backlog": 5 },
+    { "repetition": 3, "seed": 20261004, "backlog": 256 }
+  ],
+  "warmup_s": 5,
+  "measurement_s": 30,
+  "backend_fast_ms": 2,
+  "backend_max_concurrency": 64,
+  "max_generator_inflight": 256,
+  "timeout_s": 2,
+  "docker_cpus": 4,
+  "docker_memory": "4g",
+  "validity": "No generator drops and dispatch-lag p99 <= 10ms; report warmup and measurement separately. A complete valid comparison requires all six measured windows and their warmups to pass.",
+  "stopping_rule": "Exactly six attempts. Preserve all trials, no retries or threshold changes; if incomplete or invalid, report inconclusive and stop experiments."
+}

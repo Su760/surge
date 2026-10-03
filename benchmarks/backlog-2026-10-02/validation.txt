@@ -1,0 +1,35 @@
+Correctness checks (no load experiments):
+
+Initial new lifecycle/backlog tests before implementation:
+  python3 -m unittest discover -s tests -p test_performance.py
+  Ran 33 tests; FAILED (errors=10): missing paired-plan/cleanup/margin APIs,
+  old stop_process signature, and unsupported backend listen_backlog argument.
+
+Initial Linux Release/no-sanitizer build and CTest:
+  docker build --target build --load -t surge-backlog --build-arg BUILD_TYPE=Release --build-arg SANITIZER= .
+  docker run --rm surge-backlog ctest --test-dir build --output-on-failure
+  33 Python tests; unit, benchmark-unit, integration-workers-1, integration-workers-4 all passed.
+  Total CTest time 12.26s.
+
+Persistence regression after discovering output filename collision:
+  FAIL: test_trial_retains_distinct_raw_files_for_each_backlog
+  AssertionError: 'gateway' != '0001-1-direct-backlog0005.json.gz'
+  The test uses mocked load/subprocesses and generates no benchmark traffic.
+
+After fixing the result-name variable:
+  python3 -m unittest discover -s tests -p test_performance.py -v
+  Ran 34 tests; OK.
+  Docker image above with final tools/performance.py and tests/test_performance.py
+  mounted read-only at their /work paths, then ctest --test-dir build --output-on-failure:
+  unit passed; benchmark-unit passed; integration-workers-1 passed (6.04s);
+  integration-workers-4 passed (5.89s); 100% passed; total CTest time 12.36s.
+  Gateway and backend sources are unchanged between that image and final checkout.
+
+Evidence audit:
+  python3 benchmarks/backlog-2026-10-02/summarize.py
+  comparison_valid false; measured_valid_trials 6; warmup_valid_trials 6;
+  audited_arrivals 192000. The first 96000 reported arrivals have summary-only
+  evidence due to overwritten raw files. No trials repeated.
+
+Original docs/performance.md prefix verified byte-for-byte against base HEAD;
+all previous diagnostic benchmark artifacts unchanged. git diff --check passed.
