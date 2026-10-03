@@ -47,10 +47,12 @@ Authorized by the user's performance-baseline request, including commit and push
 - [x] Run direct/one/four at 1600 and 2400 requests/s, 5s excluded warmup, 30s measurement, three repetitions with alternating order; preserve compressed raw results and readable summaries.
 - [x] Append findings, limitations, and reproduction commands without changing original results; recommend one isolated follow-up experiment and make no gateway behavior changes.
 - [x] Run relevant correctness checks and review scope/secrets: 23 Python tests, four Release Linux CTest suites, and an audit of all 1,080,000 measured arrivals passed; no gateway/backend changes.
-- [ ] Commit and push, then verify GitHub Actions for the exact pushed SHA. Stop after this milestone.
+- [x] Commit and push, then verify GitHub Actions for the exact pushed SHA. Stop after this milestone.
 
 Approved by the user's 2026-10-02 continuation, including implementation, tests, the bounded local matrix, documentation, commit, push, and exact-SHA CI verification. Intended edits: tools/performance.py, tests/test_performance.py, CMakeLists.txt, docs/performance.md, tasks/todo.md; new evidence only under benchmarks/diagnostic-2026-10-02/.
 
 Smoke evidence: the initial direct 1600/s smoke failed the dispatch-lag guard (53.5ms p99) and is retained, not interpreted as a service comparison. All six confirmation trials with 5s warmup and 5s measurement passed the guard (no drops, <2.1ms p99 lag). Main matrix started only after this check. Backend backlog remains its inherited value of five.
 
 Matrix evidence: all 18 trials retained; eight measured windows passed the generator guard, ten failed. Valid direct trials show connect tails and listen/SYN-retry evidence; no clean worker-scaling conclusion. One already generator-limited trial was SIGKILLed during post-measurement teardown, with a possible five-second harness/gateway deadline race; preserve that warning rather than changing runtime behavior. Recommended next experiment changes only direct-backend backlog 5 versus 256.
+
+Implementation and evidence published in `ee776f3da77668b87f30c6686de96f04e786ddc7`; [exact-SHA CI](https://github.com/Su760/surge/actions/runs/37080620100) passed Debug, ASan, UBSan, and TSan, including benchmark-unit in each job. This checklist-only completion update will also be pushed and its exact-SHA CI verified before the final response.
