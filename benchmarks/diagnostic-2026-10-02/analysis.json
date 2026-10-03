@@ -51,47 +51,19 @@
         "drain_generator_cpu_seconds": 0.01666666666666868
       },
       "ranges": {
-        "measured_success_per_s": [
-          1594.0333333333333,
-          1599.7666666666667
-        ],
+        "measured_success_per_s": [1594.0333333333333, 1599.7666666666667],
         "success_per_s_including_drain": [
-          1547.1824545719578,
-          1599.806818153999
+          1547.1824545719578, 1599.806818153999
         ],
-        "drain_duration_s": [
-          0.003622597000003225,
-          0.9776005139999597
-        ],
-        "response_latency_max_ms": [
-          1482.8519170000036,
-          1889.1125840000323
-        ],
-        "dispatch_lag_p99_ms": [
-          1.9814472811320603,
-          2.128190936488396
-        ],
-        "dispatch_lag_max_ms": [
-          16.73864034453436,
-          74.02679399243516
-        ],
-        "peak_inflight": [
-          60,
-          256
-        ],
-        "resource_boundary_lag_ms": [
-          -0.8549030000040148,
-          -0.6766109999603032
-        ],
-        "measurement_backend_peak_rss_bytes": [
-          19607552,
-          21512192
-        ],
+        "drain_duration_s": [0.003622597000003225, 0.9776005139999597],
+        "response_latency_max_ms": [1482.8519170000036, 1889.1125840000323],
+        "dispatch_lag_p99_ms": [1.9814472811320603, 2.128190936488396],
+        "dispatch_lag_max_ms": [16.73864034453436, 74.02679399243516],
+        "peak_inflight": [60, 256],
+        "resource_boundary_lag_ms": [-0.8549030000040148, -0.6766109999603032],
+        "measurement_backend_peak_rss_bytes": [19607552, 21512192],
         "measurement_gateway_peak_rss_bytes": null,
-        "measurement_generator_peak_rss_bytes": [
-          54501376,
-          66002944
-        ]
+        "measurement_generator_peak_rss_bytes": [54501376, 66002944]
       }
     },
     {
@@ -143,50 +115,19 @@
         "drain_generator_cpu_seconds": 0.010000000000000378
       },
       "ranges": {
-        "measured_success_per_s": [
-          1542.5333333333333,
-          1599.5
-        ],
+        "measured_success_per_s": [1542.5333333333333, 1599.5],
         "success_per_s_including_drain": [
-          1503.188979102898,
-          1599.4670746748934
+          1503.188979102898, 1599.4670746748934
         ],
-        "drain_duration_s": [
-          0.004052596999997604,
-          0.8677090140000132
-        ],
-        "response_latency_max_ms": [
-          1855.9259180000254,
-          1986.4347930000013
-        ],
-        "dispatch_lag_p99_ms": [
-          1.9752838401227113,
-          26.33847775416244
-        ],
-        "dispatch_lag_max_ms": [
-          21.40587842831519,
-          225.92373183017844
-        ],
-        "peak_inflight": [
-          67,
-          256
-        ],
-        "resource_boundary_lag_ms": [
-          -0.8022780000374041,
-          0.8518470000353773
-        ],
-        "measurement_backend_peak_rss_bytes": [
-          19554304,
-          21233664
-        ],
-        "measurement_gateway_peak_rss_bytes": [
-          3682304,
-          3887104
-        ],
-        "measurement_generator_peak_rss_bytes": [
-          65384448,
-          66002944
-        ]
+        "drain_duration_s": [0.004052596999997604, 0.8677090140000132],
+        "response_latency_max_ms": [1855.9259180000254, 1986.4347930000013],
+        "dispatch_lag_p99_ms": [1.9752838401227113, 26.33847775416244],
+        "dispatch_lag_max_ms": [21.40587842831519, 225.92373183017844],
+        "peak_inflight": [67, 256],
+        "resource_boundary_lag_ms": [-0.8022780000374041, 0.8518470000353773],
+        "measurement_backend_peak_rss_bytes": [19554304, 21233664],
+        "measurement_gateway_peak_rss_bytes": [3682304, 3887104],
+        "measurement_generator_peak_rss_bytes": [65384448, 66002944]
       }
     },
     {
@@ -238,50 +179,19 @@
         "drain_generator_cpu_seconds": 0.00333333333333267
       },
       "ranges": {
-        "measured_success_per_s": [
-          1569.5,
-          1599.7666666666667
-        ],
+        "measured_success_per_s": [1569.5, 1599.7666666666667],
         "success_per_s_including_drain": [
-          1556.8850479304479,
-          1599.8164225586725
+          1556.8850479304479, 1599.8164225586725
         ],
-        "drain_duration_s": [
-          0.0034424720000174602,
-          0.24757676399997308
-        ],
-        "response_latency_max_ms": [
-          1246.571916999983,
-          1900.4507099999719
-        ],
-        "dispatch_lag_p99_ms": [
-          1.9518374148321351,
-          6.699019325932841
-        ],
-        "dispatch_lag_max_ms": [
-          7.22904439323429,
-          78.22775267226098
-        ],
-        "peak_inflight": [
-          26,
-          232
-        ],
-        "resource_boundary_lag_ms": [
-          -0.9444869999697403,
-          -0.34923599997682686
-        ],
-        "measurement_backend_peak_rss_bytes": [
-          19554304,
-          20938752
-        ],
-        "measurement_gateway_peak_rss_bytes": [
-          3919872,
-          4030464
-        ],
-        "measurement_generator_peak_rss_bytes": [
-          66002944,
-          66002944
-        ]
+        "drain_duration_s": [0.0034424720000174602, 0.24757676399997308],
+        "response_latency_max_ms": [1246.571916999983, 1900.4507099999719],
+        "dispatch_lag_p99_ms": [1.9518374148321351, 6.699019325932841],
+        "dispatch_lag_max_ms": [7.22904439323429, 78.22775267226098],
+        "peak_inflight": [26, 232],
+        "resource_boundary_lag_ms": [-0.9444869999697403, -0.34923599997682686],
+        "measurement_backend_peak_rss_bytes": [19554304, 20938752],
+        "measurement_gateway_peak_rss_bytes": [3919872, 4030464],
+        "measurement_generator_peak_rss_bytes": [66002944, 66002944]
       }
     },
     {
@@ -333,47 +243,19 @@
         "drain_generator_cpu_seconds": 0.049999999999987686
       },
       "ranges": {
-        "measured_success_per_s": [
-          2359.0666666666666,
-          2387.233333333333
-        ],
+        "measured_success_per_s": [2359.0666666666666, 2387.233333333333],
         "success_per_s_including_drain": [
-          2247.8855135050135,
-          2281.322146004857
+          2247.8855135050135, 2281.322146004857
         ],
-        "drain_duration_s": [
-          1.4431699730000673,
-          1.5214115560000891
-        ],
-        "response_latency_max_ms": [
-          1888.6485420000572,
-          1891.0125009999774
-        ],
-        "dispatch_lag_p99_ms": [
-          1.8900661681054771,
-          2.8261392552958573
-        ],
-        "dispatch_lag_max_ms": [
-          62.63379358339398,
-          155.65827870194607
-        ],
-        "peak_inflight": [
-          256,
-          256
-        ],
-        "resource_boundary_lag_ms": [
-          -0.9468199999673743,
-          5.330931000003147
-        ],
-        "measurement_backend_peak_rss_bytes": [
-          21876736,
-          22548480
-        ],
+        "drain_duration_s": [1.4431699730000673, 1.5214115560000891],
+        "response_latency_max_ms": [1888.6485420000572, 1891.0125009999774],
+        "dispatch_lag_p99_ms": [1.8900661681054771, 2.8261392552958573],
+        "dispatch_lag_max_ms": [62.63379358339398, 155.65827870194607],
+        "peak_inflight": [256, 256],
+        "resource_boundary_lag_ms": [-0.9468199999673743, 5.330931000003147],
+        "measurement_backend_peak_rss_bytes": [21876736, 22548480],
         "measurement_gateway_peak_rss_bytes": null,
-        "measurement_generator_peak_rss_bytes": [
-          81068032,
-          84566016
-        ]
+        "measurement_generator_peak_rss_bytes": [81068032, 84566016]
       }
     },
     {
@@ -425,50 +307,19 @@
         "drain_generator_cpu_seconds": 0.0266666666666661
       },
       "ranges": {
-        "measured_success_per_s": [
-          2228.6666666666665,
-          2359.366666666667
-        ],
+        "measured_success_per_s": [2228.6666666666665, 2359.366666666667],
         "success_per_s_including_drain": [
-          2159.4807739699827,
-          2359.3627297640805
+          2159.4807739699827, 2359.3627297640805
         ],
-        "drain_duration_s": [
-          0.0034408050000820367,
-          1.4434019310000394
-        ],
-        "response_latency_max_ms": [
-          1888.251375999971,
-          1904.1640839999454
-        ],
-        "dispatch_lag_p99_ms": [
-          1.908890156202168,
-          3.341103206213748
-        ],
-        "dispatch_lag_max_ms": [
-          19.14551707796636,
-          62.58481877763916
-        ],
-        "peak_inflight": [
-          137,
-          256
-        ],
-        "resource_boundary_lag_ms": [
-          -0.9049440000126197,
-          -0.7508200000074794
-        ],
-        "measurement_backend_peak_rss_bytes": [
-          21073920,
-          21463040
-        ],
-        "measurement_gateway_peak_rss_bytes": [
-          3739648,
-          3870720
-        ],
-        "measurement_generator_peak_rss_bytes": [
-          72527872,
-          84459520
-        ]
+        "drain_duration_s": [0.0034408050000820367, 1.4434019310000394],
+        "response_latency_max_ms": [1888.251375999971, 1904.1640839999454],
+        "dispatch_lag_p99_ms": [1.908890156202168, 3.341103206213748],
+        "dispatch_lag_max_ms": [19.14551707796636, 62.58481877763916],
+        "peak_inflight": [137, 256],
+        "resource_boundary_lag_ms": [-0.9049440000126197, -0.7508200000074794],
+        "measurement_backend_peak_rss_bytes": [21073920, 21463040],
+        "measurement_gateway_peak_rss_bytes": [3739648, 3870720],
+        "measurement_generator_peak_rss_bytes": [72527872, 84459520]
       }
     },
     {
@@ -520,50 +371,17 @@
         "drain_generator_cpu_seconds": 0.023333333333340533
       },
       "ranges": {
-        "measured_success_per_s": [
-          2141.6,
-          2251.8
-        ],
-        "success_per_s_including_drain": [
-          2077.943593759879,
-          2182.982923759394
-        ],
-        "drain_duration_s": [
-          0.9474233050000294,
-          1.043061056000056
-        ],
-        "response_latency_max_ms": [
-          1523.1378749999749,
-          1892.9661669999405
-        ],
-        "dispatch_lag_p99_ms": [
-          7.5427341967081745,
-          28.536068156001964
-        ],
-        "dispatch_lag_max_ms": [
-          85.27901454815583,
-          325.64206099178773
-        ],
-        "peak_inflight": [
-          256,
-          256
-        ],
-        "resource_boundary_lag_ms": [
-          -0.9371529999953054,
-          -0.46865299998444243
-        ],
-        "measurement_backend_peak_rss_bytes": [
-          19689472,
-          21401600
-        ],
-        "measurement_gateway_peak_rss_bytes": [
-          4063232,
-          4079616
-        ],
-        "measurement_generator_peak_rss_bytes": [
-          83132416,
-          84459520
-        ]
+        "measured_success_per_s": [2141.6, 2251.8],
+        "success_per_s_including_drain": [2077.943593759879, 2182.982923759394],
+        "drain_duration_s": [0.9474233050000294, 1.043061056000056],
+        "response_latency_max_ms": [1523.1378749999749, 1892.9661669999405],
+        "dispatch_lag_p99_ms": [7.5427341967081745, 28.536068156001964],
+        "dispatch_lag_max_ms": [85.27901454815583, 325.64206099178773],
+        "peak_inflight": [256, 256],
+        "resource_boundary_lag_ms": [-0.9371529999953054, -0.46865299998444243],
+        "measurement_backend_peak_rss_bytes": [19689472, 21401600],
+        "measurement_gateway_peak_rss_bytes": [4063232, 4079616],
+        "measurement_generator_peak_rss_bytes": [83132416, 84459520]
       }
     }
   ],
