@@ -1,0 +1,2 @@
+surge listening on 127.0.0.1:18080 upstream=127.0.0.1:19090 workers=4
+stats accepted=83249 active=0 queued=0 upstream_active=0 completed=83248 rejected=6933 queue_rejected=0 upstream_errors=0 timeouts=0 client_backpressure_events=0 worker_connections=0:20810,1:20813,2:20813,3:20813

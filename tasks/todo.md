@@ -38,3 +38,19 @@ Approved by the user's instruction to implement, verify, commit, and publish mil
 - [x] Review the diff and tracked files, commit and push without force, then report CI for the pushed commit.
 
 Authorized by the user's performance-baseline request, including commit and push. Stop before optimization.
+
+# Benchmark correctness and tail diagnosis milestone
+
+- [x] Add independent offered-schedule counts and unique arrival IDs; prove missing, duplicate, and unexpected outcomes fail; register unit tests with CTest.
+- [x] Separate measured completions, eventual success, drain throughput/duration/resources; add latency maxima, >1s counts, TCP/header/body timestamps, stderr, kernel counters, and environment limits.
+- [x] Validate a Release/no-sanitizer image and smoke trials; retain concurrency/dispatch-lag checks and a constant 64-socket aggregate handoff budget (64 for one worker, 16 each for four).
+- [x] Run direct/one/four at 1600 and 2400 requests/s, 5s excluded warmup, 30s measurement, three repetitions with alternating order; preserve compressed raw results and readable summaries.
+- [x] Append findings, limitations, and reproduction commands without changing original results; recommend one isolated follow-up experiment and make no gateway behavior changes.
+- [x] Run relevant correctness checks and review scope/secrets: 23 Python tests, four Release Linux CTest suites, and an audit of all 1,080,000 measured arrivals passed; no gateway/backend changes.
+- [ ] Commit and push, then verify GitHub Actions for the exact pushed SHA. Stop after this milestone.
+
+Approved by the user's 2026-10-02 continuation, including implementation, tests, the bounded local matrix, documentation, commit, push, and exact-SHA CI verification. Intended edits: tools/performance.py, tests/test_performance.py, CMakeLists.txt, docs/performance.md, tasks/todo.md; new evidence only under benchmarks/diagnostic-2026-10-02/.
+
+Smoke evidence: the initial direct 1600/s smoke failed the dispatch-lag guard (53.5ms p99) and is retained, not interpreted as a service comparison. All six confirmation trials with 5s warmup and 5s measurement passed the guard (no drops, <2.1ms p99 lag). Main matrix started only after this check. Backend backlog remains its inherited value of five.
+
+Matrix evidence: all 18 trials retained; eight measured windows passed the generator guard, ten failed. Valid direct trials show connect tails and listen/SYN-retry evidence; no clean worker-scaling conclusion. One already generator-limited trial was SIGKILLed during post-measurement teardown, with a possible five-second harness/gateway deadline race; preserve that warning rather than changing runtime behavior. Recommended next experiment changes only direct-backend backlog 5 versus 256.

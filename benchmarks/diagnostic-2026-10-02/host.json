@@ -1,0 +1,15 @@
+{
+  "host_os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "docker": {
+    "ServerVersion": "29.4.0",
+    "NCPU": 12,
+    "MemTotal": 8321429504,
+    "KernelVersion": "6.12.76-linuxkit",
+    "OperatingSystem": "Docker Desktop",
+    "Architecture": "aarch64"
+  },
+  "measurement_image_id": "sha256:fa3cf8d13e0b570f890f2b1660c0f88b359c32ab5c733ad7b00ec0d45dab98da",
+  "gateway_backend_source_commit": "c57cf3bda16884b04599f7ed3825b6cfc8a769a2",
+  "harness_identity": "See each environment.json harness_sha256; gateway and backend unchanged.",
+  "execution": "Smoke first; matrix serial in one container. No concurrent builds or correctness tests during measurement."
+}

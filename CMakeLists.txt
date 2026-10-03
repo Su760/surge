@@ -53,6 +53,13 @@ if(BUILD_TESTING)
   add_test(NAME unit COMMAND surge_unit_tests)
 
   find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+  add_test(
+    NAME benchmark-unit
+    COMMAND ${Python3_EXECUTABLE} -m unittest discover
+            -s tests -p test_performance.py -v
+  )
+  set_tests_properties(benchmark-unit PROPERTIES
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} TIMEOUT 30)
   foreach(worker_count IN ITEMS 1 4)
     add_test(
       NAME integration-workers-${worker_count}

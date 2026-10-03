@@ -1,0 +1,28 @@
+test_configuration_order_alternates_and_balances_positions (test_performance.MetricsTests.test_configuration_order_alternates_and_balances_positions) ... ok
+test_dispatch_lag_alone_marks_generator_limited (test_performance.MetricsTests.test_dispatch_lag_alone_marks_generator_limited) ... ok
+test_duplicate_cannot_replace_missing_outcome (test_performance.MetricsTests.test_duplicate_cannot_replace_missing_outcome) ... ok
+test_every_scheduled_arrival_has_one_outcome (test_performance.MetricsTests.test_every_scheduled_arrival_has_one_outcome) ... ok
+test_expected_count_uses_full_offered_intervals (test_performance.MetricsTests.test_expected_count_uses_full_offered_intervals) ... ok
+test_extra_duplicate_is_rejected (test_performance.MetricsTests.test_extra_duplicate_is_rejected) ... ok
+test_kernel_counter_parser_preserves_available_fields (test_performance.MetricsTests.test_kernel_counter_parser_preserves_available_fields) ... ok
+test_measured_successes_exclude_post_window_completions (test_performance.MetricsTests.test_measured_successes_exclude_post_window_completions) ... ok
+test_missing_id_and_dispatch_state_mismatch_are_rejected (test_performance.MetricsTests.test_missing_id_and_dispatch_state_mismatch_are_rejected) ... ok
+test_missing_outcome_is_detected_from_offered_schedule (test_performance.MetricsTests.test_missing_outcome_is_detected_from_offered_schedule) ... ok
+test_percentile_uses_linear_interpolation (test_performance.MetricsTests.test_percentile_uses_linear_interpolation) ... ok
+test_phase_metrics_and_failed_phase_progress (test_performance.MetricsTests.test_phase_metrics_and_failed_phase_progress) ... ok
+test_queue_budget_is_constant_for_one_and_four_workers (test_performance.MetricsTests.test_queue_budget_is_constant_for_one_and_four_workers) ... ok
+test_resource_windows_do_not_dilute_measurement_with_drain (test_performance.MetricsTests.test_resource_windows_do_not_dilute_measurement_with_drain) ... ok
+test_unexpected_id_cannot_replace_missing_outcome (test_performance.MetricsTests.test_unexpected_id_cannot_replace_missing_outcome) ... ok
+test_unknown_outcome_is_rejected (test_performance.MetricsTests.test_unknown_outcome_is_rejected) ... ok
+test_actual_header_and_body_receive_times_are_distinct (test_performance.RequestTests.test_actual_header_and_body_receive_times_are_distinct) ... ok
+test_internal_task_exception_invalidates_trial (test_performance.RequestTests.test_internal_task_exception_invalidates_trial) ... ok
+test_load_assigns_ids_to_successes_and_bounded_drops (test_performance.RequestTests.test_load_assigns_ids_to_successes_and_bounded_drops) ... ok
+test_load_samples_drain_memory_in_a_separate_window (test_performance.RequestTests.test_load_samples_drain_memory_in_a_separate_window) ... ok
+test_missing_length_is_not_a_success (test_performance.RequestTests.test_missing_length_is_not_a_success) ... ok
+test_peer_close_preserves_header_but_has_no_body_completion (test_performance.RequestTests.test_peer_close_preserves_header_but_has_no_body_completion) ... ok
+test_timeout_preserves_received_phase_timestamps (test_performance.RequestTests.test_timeout_preserves_received_phase_timestamps) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.230s
+
+OK
