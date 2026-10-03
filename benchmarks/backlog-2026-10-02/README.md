@@ -49,7 +49,10 @@ The first two raw outputs were overwritten before the bug was noticed. They
 cannot be recovered or independently audited at the arrival-record level.
 
 Raw outputs for trials 3–6 were copied to distinct `.json.gz` files as each trial
-finished. The last temporary `gateway` file was removed only after confirming
+finished. During trials 4–6 a host-side watcher read/decoded the current raw
+output about once per second to rescue it. Container quota, workload and validity
+criteria stayed fixed, but this added host activity is another uncontrolled
+scheduling factor. The last temporary `gateway` file was removed only after confirming
 it was byte-identical to the named trial-6 raw file. `index-preserved.json` is an
 unaltered snapshot after trial 3; `index.json` is the original complete six-entry
 index. Neither is silently rewritten to repair its recorded filenames.

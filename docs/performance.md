@@ -426,6 +426,10 @@ run: the launch loop shadowed the result filename and repeatedly wrote a file
 named `gateway`. **The first two raw files were overwritten.** Their summaries,
 resource/kernel diagnostics, cleanup records, and logs remain in the original
 index; the later four raw files were copied to distinct names before overwrite.
+A host-side watcher read/decoded the current compressed file about once per
+second during trials 4–6 to rescue it. Container resource limits, schedules and
+validity criteria stayed fixed, but the extra host activity can affect scheduling
+and is an additional limitation of this series.
 The published harness uses a separate result-name variable, with a regression
 that runs two mocked direct trials and verifies both compressed outputs survive.
 The test first failed with `AssertionError: 'gateway' !=
